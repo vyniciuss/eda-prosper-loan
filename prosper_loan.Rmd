@@ -113,6 +113,9 @@ selected_columns <- c("ListingCreationDate","Term","LoanStatus","ClosedDate","Bo
 selected_loans <- subset(loan_data, select = selected_columns)
 selected_loans$LoanOriginationDate <- as.character(selected_loans$LoanOriginationDate)
 selected_loans$LoanOriginationDate <- as.Date(selected_loans$LoanOriginationDate, format= "%Y-%m-%d")
+selected_loans$YearLoan <- as.numeric(format(
+                                      as.Date(selected_loans$ListingCreationDate), 
+                                      "%Y"))
 #imprimindo informações sobre o dataset
 str(selected_loans)
 ```
@@ -134,6 +137,9 @@ ggplot(aes(x = LoanOriginalAmount), data = selected_loans) +
 
 Como a distribuição parece uma cauda longa, limitei a visualização até 25000$ para entender melhor a distribuição. Temos alguns picos próximos de 5, 10 e 15 mil dolares. Isso é um ponto interessante, porquê podemos perceber que as pessoas costumam pegar valores próximos de múltiplos de 5.
 
+
+
+
 ```{r  echo=FALSE, message=FALSE, warning=FALSE}
 ggplot(aes(x = LoanOriginalAmount), data = selected_loans) +
   geom_histogram() +
@@ -147,6 +153,9 @@ Como temos uma assimetria positiva, nossa média(8.337) tende a ser maior que a m
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 summary(selected_loans$LoanOriginalAmount)
 ```
+
+
+
 
 
 
@@ -177,6 +186,9 @@ table(selected_loans$IncomeRange)
 A grande concentração de renda dos mutuários está entre $25.000 e $49.999 por ano. A grande descoberta aqui são 1.427 mutuários entre os desempregados e os que não possuem renda estarem conseguindo empréstimos. Como ainda não explorei todas as possíveis informações dos dados, acredito que para os desempregados, a explicação seria informações de renda salarial de empregos anteriores, mas para os com renda $0, acredito que em sua maioria são estudantes ou pessoas com boas recomendações.
 
 
+
+
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 ggplot(aes(x = StatedMonthlyIncome), data = selected_loans) +
   geom_histogram() +
@@ -190,10 +202,8 @@ summary(selected_loans$StatedMonthlyIncome)
 ```
 Como já previa, a distribuição da renda mensal possui uma assimetria positiva, com uma concentração próxima de $ 5.000. Para analisar melhor a distribuição, decidir excluir 1% dos dados superiores, mas, antes disso, descobri que um mutuário com uma renda mensal de quase 2 milhões de dolares, solicitou um empréstimo de 4 mil dolares. Acredito que esse mutuário estava interessado em participar como investidor e fez um empréstimo baixo para verificar a lisura do funcionamento da Prosper.
 
-```{r echo=FALSE, message=FALSE, warning=FALSE}
-maxstatedMonthlyIncome <- subset(selected_loans, selected_loans$StatedMonthlyIncome  >= 1750002.9)
 
-```
+
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 
@@ -207,33 +217,17 @@ ggplot(aes(x = LoanStatus, fill = LoanStatus), data = selected_loans) +
      fill = "Situação",
      y = "Número de registros")
 
-
 ```
 
-```{r echo=FALSE, message=FALSE, warning=FALSE}
-#Usado para achar os valores dos empréstimos em suas categorias
-#sum(subset(selected_loans, selected_loans$LoanStatus == "Current")[23])
-#sum(subset(selected_loans, selected_loans$LoanStatus == "Completed")[23])
-
-#sum(subset(selected_loans, selected_loans$LoanStatus == "Chargedoff" |
-#                           selected_loans$LoanStatus == "Defaulted" |
-#                           selected_loans$LoanStatus == "Past Due (>120 days)" | 
-#                           selected_loans$LoanStatus == "Past Due (1-15 days)" |
-#                           selected_loans$LoanStatus == "Past Due (16-30 days)" |
-#                           selected_loans$LoanStatus == "Past Due (31-60 days)" |
-#                           selected_loans$LoanStatus == "Past Due (61-90 days)" |
-#                           selected_loans$LoanStatus == "Past Due (91-120 days)")[23])
-#
-#sum(subset(selected_loans, selected_loans$LoanStatus == "Past Due (91-120 days)")[23])
-
-```
 Podemos visualizar que temos surpreendentes 56576 empréstimos em vigor que juntos somam $586.174.602 e outros 38074 completados que somam $235.643.536. Temos também alguns mutuários inadimplentes separados em diferentes categorias que, até então, estão dando um calote de $ 126.356.754.
+
+
+
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 ggplot(aes(x = ProsperScore), data = selected_loans) +
   geom_histogram() + 
   scale_x_continuous(limits = c(0,12), breaks =  seq(0, 12, 1))
-
 
 summary(selected_loans$ProsperScore)
 ```
@@ -252,8 +246,6 @@ selected_loans$inadimplente <- as.factor(ifelse(
                                       selected_loans$LoanStatus == "Past Due (91-120 days)" |
                                       selected_loans$LoanStatus == "Past Due (>120 days)", 
                                       TRUE, FALSE))
-
-
 ```
 
 
@@ -314,11 +306,6 @@ geom_map(data =  subset(selected_loans.fc_by_state, selected_loans.fc_by_state$i
 Aqui podemos visualizar a grande concentração de empréstimos na Califórnia com exatos 12.351 mutuários bons pagadores e 2.366 inadimplentes. Acredito que essa grande concentração é devido a sede da empresa está situada na Califórnia, onde a empresa deve ter focado grandes esforços em marketing no seu início, levando uma grande confiança tanto dos mutuários quanto dos credores. Outra observação importante é que as regiões central e norte do país possuem poucos mutuários, acredito que isso se deve por ser uma região de pouca população, onde grande parte da economia familiar vem da agropecuária. 
 
 
-```{r echo=FALSE, message=FALSE, warning=FALSE}
-#subset(selected_loans.fc_by_state,  selected_loans.fc_by_state$stateFullName== "california")
-
-
-```
 
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
@@ -336,19 +323,18 @@ categories <- c("Not Available", "Debt Consolidation", "Home Improvement",
 
 
 
-  ggplot(selected_loans.fc_by_ListingCategory, aes(x = ListingCategory, y = n, label = n)) +
-  geom_bar(stat = "identity", fill = "red") +
-  scale_x_discrete(limits = categories) +  
-  geom_text(size = 3, position = position_stack(vjust = 0.8)) + 
-  theme(legend.position = "bottom") + 
-    theme(axis.text.x = element_text(angle = 90, vjust = -2.5), axis.ticks = element_blank()) + 
-    labs(title="Motivação para adquirir um empréstimo", 
-     x = "Motivo do empréstimo",
-     y = "Número de registros")
+ggplot(selected_loans.fc_by_ListingCategory, aes(x = ListingCategory, y = n, label = n)) +
+geom_bar(stat = "identity", fill = "red") +
+scale_x_discrete(limits = categories) +  
+geom_text(size = 3, position = position_stack(vjust = 0.8)) + 
+theme(legend.position = "bottom") + 
+  theme(axis.text.x = element_text(angle = 90, vjust = -2.5), axis.ticks = element_blank()) + 
+  labs(title="Motivação para adquirir um empréstimo", 
+   x = "Motivo do empréstimo",
+   y = "Número de registros")
 ```
 
-A grande maioria dos empréstimos são para consolidação de dívidas. Isso é algo interessante, porquê as pessoas se endividam para pagar outras dívidas, entrando em um círculo vicioso para trocar de credor. Acredito que emprestar dinheiro para alguém com a finalidade de quitar outras dívidas é muito arriscado, se compararmos com "reformas de casa"" e "negócios"" que se destacam logo em seguida.
-
+A grande maioria dos empréstimos são para consolidação de dívidas. Isso é algo interessante, porquê as pessoas se endividam para pagar outras dívidas, entrando em um círculo vicioso para trocar de credor. Acredito que emprestar dinheiro para alguém com a finalidade de quitar outras dívidas é muito arriscado, se compararmos com "reformas de casa" e "negócios" que se destacam logo em seguida.
 
 
 ## Análise Bivariada
@@ -360,18 +346,18 @@ ggplot(aes(x = StatedMonthlyIncome, fill = inadimplente), data = selected_loans)
   geom_histogram() +
   scale_x_continuous(limits = c(0, quantile(selected_loans$StatedMonthlyIncome, 0.99)),
                      breaks = seq(0, quantile(selected_loans$StatedMonthlyIncome, 0.99), 2500)) +
-  scale_fill_discrete(labels = c("Inadimplente", "Bom Pagador")) +
+  scale_fill_discrete(labels = c("Bom Pagador", "Inadimplente")) +
    labs(title="Renda mensal por situação do mutuário", 
      fill = "Situação",
      y = "Número de registros",
      x = "Renda mensal")
 
-
-
-
 ```
 
-Como agora sabemos quando um mutuário está inadimplente, me surgiu uma dúvida de como ficaria a distribuição de renda mensal por situação. Com a visualização acima, fica claro que somente renda mensal alta não faz um mutuário um bom pagador. Outra observação importante é a confirmação da concentração de inadimplentes está próximo da moda da distribuição.
+Como agora sabemos quando um mutuário está inadimplente, me surgiu uma dúvida de como ficaria a distribuição de renda mensal por situação. Com a visualização acima, fica claro que somente renda mensal alta não faz um mutuário um bom pagador. Outra observação importante é a confirmação de que a concentração de inadimplentes está próximo da moda da distribuição.
+
+
+
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 
@@ -391,13 +377,16 @@ with(selected_loans, cor.test(LoanOriginalAmount, EstimatedReturn))
 Aqui foi uma grande surpresa para mim, encontrei uma correlação negativa de -0.286 quando esperava que o retorno estimado fosse maior para os credores nos grandes empréstimos. Depois de uma pesquisa no site da Prosper, descobrir que os investidores recebem um uma porcentagem maior para os empréstimos de alto risco, sendo assim, acredito que esses retornos mais altos são de transações de alto risco.
 
 
-```{r echo=FALSE, message=FALSE, warning=FALSE}
 
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+poly.formula <- y ~ poly(x, 2)
 ggplot(aes(x = LoanOriginalAmount, y = Investors), 
        data = selected_loans) +
   geom_point(alpha = 1/20, size = 1, position = 'jitter') +
   scale_x_log10() +
-  geom_smooth(method="lm",color = 'red',  formula= (y ~ exp(x)), se=FALSE, linetype = 1) +
+  geom_smooth(method = "lm",color = 'red',  formula = poly.formula,
+              fill=NA, se=TRUE, linetype = 1) +
   labs(title="Valor do empréstimo por número de investidores",
         x = "Valor do Empréstimo",
         y = "Número de Investidores")
@@ -405,23 +394,22 @@ ggplot(aes(x = LoanOriginalAmount, y = Investors),
 with(selected_loans, cor.test(LoanOriginalAmount, Investors))
 ```
 
-Aqui foi outra surpresa, esperava um crescimento linear entre investidores e valor do empréstimo, mas encontrei algo parecido com um crescimento polinomial. Percebe-se algumas linhas verticais que pode ser exlicada pela correlação positiva fraca de 0.38.
+Aqui foi outra surpresa, esperava um crescimento linear entre investidores e valor do empréstimo, mas encontrei algo parecido com um crescimento polinomial. Percebe-se algumas linhas verticais que são explicadas pela correlação positiva fraca de 0.38.
+
+
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 
 ggplot(aes(x = LoanStatus, y = LoanOriginalAmount), 
        data = selected_loans) +
   geom_boxplot(aes(fill = LoanStatus)) + 
-  theme( axis.text.x=element_text(angle=90,hjust=1,vjust=0.5)) +
-  theme(axis.title.x=element_blank(),
-        axis.text.x=element_blank(),
-        axis.ticks.x=element_blank()) +
-  labs(title="Distribuição da faixa de renda", 
+  theme( axis.text.x = element_text(angle = 90,hjust = 1, vjust = 0.5)) +
+  theme(axis.title.x = element_blank(),
+        axis.text.x = element_blank(),
+        axis.ticks.x = element_blank()) +
+  labs(title = "Distribuição da faixa de renda", 
      y = "Valor do Empréstimo",
      fill = "Situação do Empréstimo")
-
-
-
 
 with(selected_loans, by(LoanOriginalAmount, LoanStatus, summary))
 ```
@@ -429,17 +417,21 @@ with(selected_loans, by(LoanOriginalAmount, LoanStatus, summary))
 A maioria das categorias possuem o 1º quartil igual, com exceção de algumas categorias. Outra observação interessante é que na maioria das categorias de mutuários inadimplentes, o 3 quartil é maior ou igual a 10 mil dolares.
 
 
+
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 
-box_vc <- ggplot(aes(x = ProsperRating, y = BorrowerRate), 
+scores <-c("AA", "A", "B", "C", "D", "E", "HR")
+
+box_vc <- ggplot(aes(x = ProsperRating, y = BorrowerRate, label = ProsperRating), 
        data = selected_loans) +
-  geom_boxplot(aes(fill = ProsperRating)) + 
-  scale_y_continuous( labels = scales::percent) +
-  theme( axis.text.x=element_text(angle=90,hjust=1,vjust=0.5)) +
-  theme(axis.title.x=element_blank(),
-        axis.text.x=element_blank(),
-        axis.ticks.x=element_blank()) +
-  labs(title="Taxa de Juros por Score de Crédito", 
+  geom_boxplot() + 
+  scale_y_continuous(labels = scales::percent) +
+  scale_x_discrete(limits = scores) + 
+  theme(legend.position = "bottom") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)) +
+  labs(title = "Taxa de Juros por Score de Crédito", 
+     x = "Score de Crédito",
      y = "Taxa de Juros",
      fill = "Score de Crédito")
 
@@ -449,8 +441,7 @@ box_vc <- ggplot(aes(x = ProsperRating, y = BorrowerRate),
 vc_ylim2 = boxplot.stats(selected_loans$BorrowerRate)$stats[c(1, 5)]
 
 # define os limites do y baseado no vc_ylim2
-c1 = box_vc + 
-  coord_cartesian(ylim = vc_ylim2) 
+c1 = box_vc + coord_cartesian(ylim = vc_ylim2) 
 
 
 c1
@@ -458,10 +449,112 @@ c1
 with(selected_loans, by(BorrowerRate, ProsperRating, summary))
 ```
 
+Na visualização acima podemos perceber um crescimento linear, isso já era algo esperado porquê a taxa de juros aumenta a medida que o nível de risco também aumenta. Nós também podemos perceber um IQR muito baixo no nível de risco mais alto(HR), com a média e mediana muito próximas, o que nos leva a inferir uma simetria na distribuição.
+
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+loans_inadimplentes_by_BankcardUtilization <- group_by(subset(selected_loans, selected_loans$inadimplente == TRUE), ProsperRating)
+loans_inadimplentes_mp_by_BankcardUtilization <- summarise(loans_inadimplentes_by_BankcardUtilization, mean_price = mean(BankcardUtilization))
+
+loans_bons_by_BankcardUtilization <- group_by(subset(selected_loans, selected_loans$inadimplente == FALSE), ProsperRating)
+loans_bons_mp_by_BankcardUtilization <- summarise(loans_bons_by_BankcardUtilization, mean_price = mean(BankcardUtilization))
+
+p1 <- ggplot(aes(x = ProsperRating, y = mean_price),data = loans_inadimplentes_mp_by_BankcardUtilization) +
+        geom_bar(stat = "identity", fill = "#FF7F50") +
+        scale_x_discrete(limits = scores) + 
+        scale_y_continuous(labels = scales::percent) +
+        theme(legend.position = "bottom", 
+              panel.background = element_blank()) + 
+        labs(title = "Média de uso do cartão de crédito de mutuários inadimplentes", 
+             y = "Uso cartão de crédito",
+             x = "Score de Risco")
+
+p2 <- ggplot(aes(x = ProsperRating, y = mean_price),data = loans_bons_mp_by_BankcardUtilization) +
+        geom_bar(stat="identity", fill = "#00CDCD") +
+        scale_x_discrete(limits = scores) +
+        scale_y_continuous(labels = scales::percent) +
+        theme(legend.position = "bottom", 
+              panel.background = element_blank()) + 
+        labs(title = "Média de uso do cartão de crédito de mutuários bons pagadores", 
+             y = "Uso cartão de crédito",
+             x = "Score de Risco")
+
+grid.arrange(p1, p2, ncol = 1)
+
+```
+
+Na visualização acima examinei a média de uso do cartão de crédito por score de risco. Podemos perceber uma tendência entre as duas variáveis, o uso do cartão de crédito aumenta na medida que o score de risco do mutuário também aumenta. Os mutuários de maior risco utilizam em média mais de 50% do crédito rotativo disponível nos cartões, mas podemos ver que essa tendência ocorre tanto para os inadimplente quanto para os bons pagadores.
+
+## Análise Multivariada
+
+
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(aes(x = LoanCurrentDaysDelinquent, y = BankcardUtilization, color = EmploymentStatus), 
+       data = subset(selected_loans, !is.na(selected_loans$EmploymentStatus))) +
+  geom_point(alpha = 1/10, size = 1, position = 'jitter') +
+  scale_y_log10(labels = scales::percent) +
+  scale_color_brewer(palette = "Set1",
+                     guide = guide_legend(title = 'Situação do emprego',
+                                          override.aes = list(alpha = 1, size = 2))) +
+  labs(title="Utilização do cartão de crédito por dias em atraso",
+      x = "Dias em Atraso",
+      y = "Uso Cartão Crédito")
+```
+
+Na visualização acima, eu esperava um crescimento do uso do cartão à medida que os dias em atraso fossem aumentando, mas muitos mutuários quando se tornam inadimplentes já estão com o limite do cartão estourado. Percebemos que os mutuários que mais utilizam o cartão estão empregados, e isso faz bastante sentido, o estranho aqui é que em certo ponto no tempo, a predominância muda de mutuários com o status de "Employed" para "Full-Time". 
+
+
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(aes(x = LenderYield, fill = inadimplente), 
+       data = subset(selected_loans, !is.na(selected_loans$EmploymentStatus))) +
+  geom_histogram() +
+  scale_fill_brewer(palette = "Set1") +
+  facet_wrap(~ EmploymentStatus, scales = "free") +
+  scale_x_continuous(limits = c(0, 0.35), labels = scales::percent) +
+  scale_fill_discrete(labels = c("Bom Pagador", "Inadimplente")) +
+   labs(title="O rendimento do credor por situação de emprego do mutuário", 
+     fill = "Situação",
+     y = "Rendimento do credor",
+     x = "Uso do cartão de crédito")
+```
+
+Decidir investigar o retorno do credor para cada situação de emprego do mutuário e encontrei algumas situações interessantes. Aqui podemos perceber que todas as situações de emprego possuem um pico elevado na casa dos 30% e os mutuários "Retired" são os únicos que possuem 2 picos acima de 30%. Os mutuários "Full-time" e "Not available" possuem elevadas parcelas de inadimplentes comparado aos bons pagadores.
+
+
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+gg_color_hue <- function(n) {hcl(h=seq(15, 375, length=n+1), l=65, c=100)[1:n]}
+
+ggplot(aes(x = YearLoan,  y = OnTimeProsperPayments), 
+       data = subset(selected_loans, !is.na(OnTimeProsperPayments))) +
+  geom_line(aes(color = IncomeRange),
+            stat = 'summary', fun.y = median) +
+  scale_color_manual(
+    "Faixa de Renda",
+    values=c(gg_color_hue(length(unique(selected_loans$IncomeRange))), "orange", "darkred")
+  ) +
+   labs(title="Pagamentos até o data do vencimento", 
+     y = "Pagamentos em dia",
+     x = "Ano do pagamento")
+```
+
+Podemos visualizar que mesmo no período da crise financeira de 2008, houve um crescimento constante no número de pagamentos em dia, mas logo após o ano de 2010, houve uma queda acentuada nos pagamentos. Outro ponto de interessante é o número de pagamentos crescente entre mutuários desempregados e com renda $0. Aqui poderia ter várias explicações possíveis para isso, mas acredito estes mutuários devem ter conseguido emprego logo após os empréstimos ou podem ter rendas informais.
 
 ## Gráficos finais e sumário.
 
+
+
 ### Primeira Visualização Obs: fazer uma grid comparando a faixa de renda dos estados com mais mutuários
+
+
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 
 selected_loans.fc_by_IncoreRange <- subset(selected_loans, selected_loans$BorrowerState == "NY") %>%
@@ -486,7 +579,7 @@ selected_loans.fc_by_IncoreRange <- subset(selected_loans, selected_loans$Borrow
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 
 ggplot(aes(x = LoanOriginalAmount, y = EstimatedReturn, color = ProsperRating), 
-       data = selected_loans) +
+       data = subset(selected_loans, !is.na(selected_loans$ProsperRating))) +
   geom_point(alpha = 0.5, size = 1, position = 'jitter') +
   scale_y_continuous(limits = c(0, 0.3), labels = scales::percent) +
   geom_smooth(method = 'lm', color = 'red') +
@@ -515,4 +608,5 @@ Como tinha suspeitado na análise bivariada, nossa correlação negativa está diret
 * https://stackoverflow.com/questions/6644997/showing-data-values-on-stacked-bar-chart-in-ggplot2?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa
 * https://www.prosper.com/plp/legal/compliance/
 * https://stackoverflow.com/questions/37329074/geom-smooth-and-exponential-fits
+* https://www.r-bloggers.com/multiple-legends-for-the-same-aesthetic-2/
 

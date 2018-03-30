@@ -1,0 +1,518 @@
+---
+title: "Análise Exploratória de dados - Prosper"
+author: "vinicius"
+date: "27 de março de 2018"
+output: html_document
+---
+
+Prosper Marketplace
+===
+
+> O Prosper Marketplace é o primeiro mercado de empréstimos peer-to-peer dos Estados Unidos, com mais de US $ 7 bilhões em empréstimos financiados. Os mutuários solicitam empréstimos pessoais ao Prosper e os investidores (individuais ou institucionais) podem financiar de US $ 2.000 a US $ 35.000 por solicitação de empréstimo. Os investidores podem considerar as pontuações de crédito, as classificações e as histórias dos tomadores e a categoria do empréstimo. A Prosper cuida do serviço do empréstimo e cobra e distribui os pagamentos dos mutuários e os juros aos investidores.
+[Wikipedia](https://en.wikipedia.org/wiki/Prosper_Marketplace)
+
+
+## Visão Geral sobre os dados
+Este conjunto de dados possui 113.937 empréstimos com 81 variáveis em cada um, incluindo o valor, taxa de juros, status do pagamento, receita do mutuário, seu emprego atual, histórico do cartão de crédito e informações sobre seu último pagamento.
+Depois de uma rápida análise sobre os dados, resolvi selecionar as variáveis abaixo:
+
+
+* ListingCreationDate: A data em que a listagem foi criada.
+* Term: A duração do empréstimo expressa em meses.
+* LoanStatus: O status atual do empréstimo:
+    - Cancelled
+    - Chargedoff
+    - Completed
+    - Current
+    - Defaulted
+    - FinalPaymentInProgress
+    - PastDue (O status PastDue será acompanhado por um intervalo de inadimplência.)
+* ClosedDate: A data de encerramento é aplicável para os status de empréstimo Cancelled, Completed, Chargedoff e Defaulted
+* BorrowerRate: A taxa de juros do Mutuário para este empréstimo.
+* LenderYield: O rendimento do credor no empréstimo. O rendimento do credor é igual à taxa de juros do empréstimo menos a taxa de serviço.
+* EstimatedReturn: O retorno estimado atribuído à listagem no momento em que foi criado. O retorno estimado é a diferença entre o rendimento efetivo estimado e a taxa de perda estimada. Aplicável para empréstimos originados após julho de 2009.
+* ProsperScore: Uma pontuação de risco personalizada criada usando dados históricos do Prosper. A pontuação varia de 1 a 10, sendo 10 a melhor ou a menor pontuação de risco. Aplicável para empréstimos originados após julho de 2009.
+* ListingCategory: A categoria da listagem que o mutuário selecionou ao postar sua listagem:
+    - 0 - Not Available
+    - 1 - Debt Consolidation
+    - 2 - Home Improvement
+    - 3 - Business
+    - 4 - Personal Loan
+    - 5 - Student Use
+    - 6 - Auto
+    - 7- Other
+    - 8 - Baby&Adoption
+    - 9 - Boat
+    - 10 - Cosmetic Procedure
+    - 11 - Engagement Ring
+    - 12 - Green Loans
+    - 13 - Household Expenses
+    - 14 - Large Purchases
+    - 15 - Medical/Dental
+    - 16 - Motorcycle
+    - 17 - RV
+    - 18 - Taxes
+    - 19 - Vacation
+    - 20 - Wedding Loans
+* BorrowerState: A abreviação de duas letras do estado do endereço do mutuário no momento em que a Listagem foi criada.
+* Occupation: A Ocupação selecionada pelo Mutuário no momento em que criou a listagem.
+* EmploymentStatus: O status de emprego do mutuário no momento em que eles publicaram a listagem.
+* EmploymentStatusDuration: A duração em meses do status de emprego no momento em que a listagem foi criada.
+* IsBorrowerHomeowner: Um Mutuário será classificado como proprietário se tiver uma hipoteca em seu perfil de crédito ou fornecer documentação confirmando que é um proprietário.
+* FirstRecordedCreditLine: A data em que a primeira linha de crédito foi aberta.
+* BankcardUtilization: A porcentagem de crédito rotativo disponível que é utilizada no momento em que o perfil de crédito foi retirado.
+* AvailableBankcardCredit: O crédito total disponível através de cartão bancário no momento em que o perfil de crédito foi retirado.
+* TradesOpenedLast6Months: Número de negociações abertas nos últimos 6 meses no momento em que o perfil de crédito foi retirado.
+* StatedMonthlyIncome: A renda mensal que o mutuário declarou no momento em que a listagem foi criada.
+* TotalProsperLoans: Número de empréstimos que o mutuário tinha na Prosper no momento em que eles criaram esta listagem. Esse valor será nulo se o mutuário não tiver empréstimos anteriores.
+* OnTimeProsperPayments: Número de pagamentos em tempo, que o mutuário efetuou em empréstimos na Prosper no momento em que criaram esta listagem. Esse valor será nulo se o mutuário não tiver empréstimos anteriores.
+* LoanCurrentDaysDelinquent: O número de dias em atraso.
+* LoanMonthsSinceOrigination: Número de meses desde a origem do empréstimo.
+* LoanOriginalAmount: O montante de originação do empréstimo.
+* LoanOriginationDate: A data em que o empréstimo foi originado.
+* LoanOriginationQuarter: O trimestre em que o empréstimo foi originado.
+* MonthlyLoanPayment: O pagamento do empréstimo mensal programado.
+* Investors: O número de investidores que financiaram o empréstimo.
+* Recommendations: Número de recomendações que o mutuário tinha no momento em que a listagem foi criada.
+* IncomeRange: O intervalo de rendimento do mutuário no momento em que a listagem foi criada.
+
+
+```{r setup, include=FALSE}
+# ================================================== #
+#          Load libraries and main dataset           #
+# ================================================== #
+library(ggplot2) 
+library(dplyr)
+library(gridExtra)
+library(GGally)
+library(ggthemes)
+
+
+loan_data <- read.csv("prosperLoanData.csv", na.strings=c("","NA"))
+```
+
+
+
+```{r echo=FALSE}
+# ================================================== #
+#                  Data Munging                      #
+# ================================================== #
+
+#Alterando o nome de ListingCategory..numeric. para ListingCategory
+names(loan_data)[17]<-paste("ListingCategory")
+names(loan_data)[15]<-paste("ProsperRating")
+
+selected_columns <- c("ListingCreationDate","Term","LoanStatus","ClosedDate","BorrowerRate",
+                      "LenderYield","EstimatedReturn","ProsperScore",
+                      "ListingCategory","BorrowerState", "Occupation","EmploymentStatus","EmploymentStatusDuration",
+                      "IsBorrowerHomeowner", "FirstRecordedCreditLine","BankcardUtilization",                                                     "AvailableBankcardCredit","TradesOpenedLast6Months",
+                      "StatedMonthlyIncome", "TotalProsperLoans","OnTimeProsperPayments","LoanCurrentDaysDelinquent",
+                      "LoanMonthsSinceOrigination","LoanOriginalAmount","LoanOriginationDate","LoanOriginationQuarter",
+                      "MonthlyLoanPayment","Investors", "Recommendations", "IncomeRange", "ProsperRating")
+#Separando um dataset novo com as colunas selecionadas
+selected_loans <- subset(loan_data, select = selected_columns)
+selected_loans$LoanOriginationDate <- as.character(selected_loans$LoanOriginationDate)
+selected_loans$LoanOriginationDate <- as.Date(selected_loans$LoanOriginationDate, format= "%Y-%m-%d")
+#imprimindo informações sobre o dataset
+str(selected_loans)
+```
+Após a criação do novo dataset com as variáveis selecionadas, continuamos com as mesmas 113.937 observações, só que agora distribuídas em 31 variáveis.
+
+
+## Análise Univariada
+
+
+Para iniciar a análise, iremos começar pela distribuição do valor original dos empréstimos 
+```{r pressure, echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(aes(x = LoanOriginalAmount), data = selected_loans) +
+  geom_histogram() + 
+  labs(title="Valores dos empréstimos", 
+     x = "Valor do Empréstimo",
+     y = "Número de registros")
+  
+```
+
+Como a distribuição parece uma cauda longa, limitei a visualização até 25000$ para entender melhor a distribuição. Temos alguns picos próximos de 5, 10 e 15 mil dolares. Isso é um ponto interessante, porquê podemos perceber que as pessoas costumam pegar valores próximos de múltiplos de 5.
+
+```{r  echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(aes(x = LoanOriginalAmount), data = selected_loans) +
+  geom_histogram() +
+  scale_x_continuous(limits = c(0, 25000), breaks = seq(0, 25000, 2500)) + 
+  labs(title="Valores dos empréstimos até 25 mil dolares", 
+     x = "Valor do Empréstimo",
+     y = "Número de registros")
+```
+
+Como temos uma assimetria positiva, nossa média(8.337) tende a ser maior que a mediana(6.500).
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+summary(selected_loans$LoanOriginalAmount)
+```
+
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+selected_loans.fc_by_IncoreRange <- selected_loans %>%
+  group_by(IncomeRange) %>%
+  summarise(n = n()) 
+
+
+
+ranges <-c("$0", "$1-24,999", "$25,000-49,999", "$50,000-74,999",
+                               "$75,000-99,999","$100,000+", "Not employed", "Not displayed")
+
+  ggplot(selected_loans.fc_by_IncoreRange, aes(x = IncomeRange, y = n, label = n)) +
+  geom_bar(stat = "identity", fill ="lightgray") +
+  scale_x_discrete(limits = ranges) +  
+  geom_text(size = 3, position = position_stack(vjust = 0.5)) + 
+  theme(legend.position = "bottom", 
+          panel.background = element_blank()) + 
+    theme(axis.text.x = element_text(angle = 45, hjust = 1)) + 
+    labs(title="Distribuição da faixa de renda", 
+     fill = "Faixa de Renda",
+     y="Número de Empréstimos",
+     x = "Faixa de Renda")
+
+table(selected_loans$IncomeRange)
+```
+A grande concentração de renda dos mutuários está entre $25.000 e $49.999 por ano. A grande descoberta aqui são 1.427 mutuários entre os desempregados e os que não possuem renda estarem conseguindo empréstimos. Como ainda não explorei todas as possíveis informações dos dados, acredito que para os desempregados, a explicação seria informações de renda salarial de empregos anteriores, mas para os com renda $0, acredito que em sua maioria são estudantes ou pessoas com boas recomendações.
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(aes(x = StatedMonthlyIncome), data = selected_loans) +
+  geom_histogram() +
+  scale_x_continuous(limits = c(0, quantile(selected_loans$StatedMonthlyIncome, 0.99)),
+                     breaks = seq(0, quantile(selected_loans$StatedMonthlyIncome, 0.99), 2500)) +
+   labs(title="Renda mensal dos mutuários", 
+     x = "Renda mensal",
+     y = "Número de registros")
+
+summary(selected_loans$StatedMonthlyIncome)
+```
+Como já previa, a distribuição da renda mensal possui uma assimetria positiva, com uma concentração próxima de $ 5.000. Para analisar melhor a distribuição, decidir excluir 1% dos dados superiores, mas, antes disso, descobri que um mutuário com uma renda mensal de quase 2 milhões de dolares, solicitou um empréstimo de 4 mil dolares. Acredito que esse mutuário estava interessado em participar como investidor e fez um empréstimo baixo para verificar a lisura do funcionamento da Prosper.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+maxstatedMonthlyIncome <- subset(selected_loans, selected_loans$StatedMonthlyIncome  >= 1750002.9)
+
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+ggplot(aes(x = LoanStatus, fill = LoanStatus), data = selected_loans) +
+  geom_bar() + 
+  theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5)) +
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank()) +
+   labs(title="Situação dos empréstimos", 
+     fill = "Situação",
+     y = "Número de registros")
+
+
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+#Usado para achar os valores dos empréstimos em suas categorias
+#sum(subset(selected_loans, selected_loans$LoanStatus == "Current")[23])
+#sum(subset(selected_loans, selected_loans$LoanStatus == "Completed")[23])
+
+#sum(subset(selected_loans, selected_loans$LoanStatus == "Chargedoff" |
+#                           selected_loans$LoanStatus == "Defaulted" |
+#                           selected_loans$LoanStatus == "Past Due (>120 days)" | 
+#                           selected_loans$LoanStatus == "Past Due (1-15 days)" |
+#                           selected_loans$LoanStatus == "Past Due (16-30 days)" |
+#                           selected_loans$LoanStatus == "Past Due (31-60 days)" |
+#                           selected_loans$LoanStatus == "Past Due (61-90 days)" |
+#                           selected_loans$LoanStatus == "Past Due (91-120 days)")[23])
+#
+#sum(subset(selected_loans, selected_loans$LoanStatus == "Past Due (91-120 days)")[23])
+
+```
+Podemos visualizar que temos surpreendentes 56576 empréstimos em vigor que juntos somam $586.174.602 e outros 38074 completados que somam $235.643.536. Temos também alguns mutuários inadimplentes separados em diferentes categorias que, até então, estão dando um calote de $ 126.356.754.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(aes(x = ProsperScore), data = selected_loans) +
+  geom_histogram() + 
+  scale_x_continuous(limits = c(0,12), breaks =  seq(0, 12, 1))
+
+
+summary(selected_loans$ProsperScore)
+```
+
+O score dos mutuários demonstram algo parecido com uma distribuição normal, mas como o dicionário de dados indica que o valor 10 pode indicar a melhor ou a menor pontuação, não podemos confiar no score sem uma contextualização melhor de quando o 10 significa algo bom ou ruim.
+
+### Adicionando uma nova característica em nossos empréstimos
+Como identificamos um grande número de inadimplentes separados em diferentes categorias, será criada a variável "inadimplente", a fim de identificar com mais facilidade um mutuário inadimplente e um bom pagador.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+#definindo inadimplente 
+selected_loans$inadimplente <- as.factor(ifelse(
+                                      selected_loans$LoanStatus == "Defaulted" |
+                                      selected_loans$LoanStatus == "Chargedoff" |
+                                      selected_loans$LoanStatus == "Past Due (61-90 days)" |
+                                      selected_loans$LoanStatus == "Past Due (91-120 days)" |
+                                      selected_loans$LoanStatus == "Past Due (>120 days)", 
+                                      TRUE, FALSE))
+
+
+```
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+#recupera dados dos estados dos EUA
+map <- map_data("state")
+#cria um dataframe com lat, long e abreviação do nome dos estados.
+states <- data.frame(state.center, state.abb)
+#recupera o nome completo dos estado a partir da abreviação.
+selected_loans$stateFullName <- tolower(state.name[match(selected_loans$BorrowerState, state.abb)])
+#cria um agrupamento por estado e situação do mutuário
+selected_loans.fc_by_state <- selected_loans %>%
+  group_by(stateFullName, inadimplente) %>%
+  summarise(n = n()) 
+  
+
+
+ggplot() + 
+geom_map(data = map, map = map,
+              aes(x = long, y = lat, map_id = region)) +
+geom_map(data =  subset(selected_loans.fc_by_state, selected_loans.fc_by_state$inadimplente == TRUE), 
+              aes(fill = n, map_id = stateFullName),
+              map = map) + 
+     expand_limits(x = map$long, y = map$lat) +
+     coord_map() +
+     geom_text(data = states, 
+            aes(x = x, y = y, label = state.abb, group = NULL), size = 2) +
+  scale_fill_continuous(low='white', high='red') +
+  theme(legend.position = "right", 
+          panel.background = element_blank()) + 
+  labs(subtitle="Estados dos Mutuários", 
+       fill = "Número de mutuários",
+       y="Latitude", 
+       x="Longitude", 
+       title="Mapa de Mutuários Inadimplentes")
+
+
+ggplot() + 
+geom_map(data = map, map = map,
+          aes(x = long, y = lat, map_id = region)) +
+geom_map(data =  subset(selected_loans.fc_by_state, selected_loans.fc_by_state$inadimplente == FALSE), 
+              aes(fill = n, map_id = stateFullName),
+              map = map) + 
+     expand_limits(x = map$long, y = map$lat) +
+     coord_map() +
+     geom_text(data = states, 
+            aes(x = x, y = y, label = state.abb, group = NULL), size = 2) +
+  scale_fill_continuous(low='white', high='blue') +
+     theme(legend.position = "right", 
+          panel.background = element_blank()) +
+  labs(subtitle="Estados dos Mutuários", 
+       fill = "Número de mutuários",
+       y="Latitude", 
+       x="Longitude", 
+       title="Mapa de Mutuários Bons Pagadores")
+```
+
+Aqui podemos visualizar a grande concentração de empréstimos na Califórnia com exatos 12.351 mutuários bons pagadores e 2.366 inadimplentes. Acredito que essa grande concentração é devido a sede da empresa está situada na Califórnia, onde a empresa deve ter focado grandes esforços em marketing no seu início, levando uma grande confiança tanto dos mutuários quanto dos credores. Outra observação importante é que as regiões central e norte do país possuem poucos mutuários, acredito que isso se deve por ser uma região de pouca população, onde grande parte da economia familiar vem da agropecuária. 
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+#subset(selected_loans.fc_by_state,  selected_loans.fc_by_state$stateFullName== "california")
+
+
+```
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+selected_loans.fc_by_ListingCategory <- selected_loans %>%
+  group_by(ListingCategory) %>%
+  summarise(n = n()) 
+
+
+categories <- c("Not Available", "Debt Consolidation", "Home Improvement", 
+                      "Business", "Personal Loan", "Student Use", "Auto", "Other", 
+                      "Baby&Adoption", "Boat", "Cosmetic Procedure", 
+                      "Engagement Ring", "Green Loans","Household Expenses", 
+                      "Large Purchases", "Medical/Dental", "Motorcycle",
+                      "RV", "Taxes", "Vacation", "Wedding Loans")
+
+
+
+  ggplot(selected_loans.fc_by_ListingCategory, aes(x = ListingCategory, y = n, label = n)) +
+  geom_bar(stat = "identity", fill = "red") +
+  scale_x_discrete(limits = categories) +  
+  geom_text(size = 3, position = position_stack(vjust = 0.8)) + 
+  theme(legend.position = "bottom") + 
+    theme(axis.text.x = element_text(angle = 90, vjust = -2.5), axis.ticks = element_blank()) + 
+    labs(title="Motivação para adquirir um empréstimo", 
+     x = "Motivo do empréstimo",
+     y = "Número de registros")
+```
+
+A grande maioria dos empréstimos são para consolidação de dívidas. Isso é algo interessante, porquê as pessoas se endividam para pagar outras dívidas, entrando em um círculo vicioso para trocar de credor. Acredito que emprestar dinheiro para alguém com a finalidade de quitar outras dívidas é muito arriscado, se compararmos com "reformas de casa"" e "negócios"" que se destacam logo em seguida.
+
+
+
+## Análise Bivariada
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+ggplot(aes(x = StatedMonthlyIncome, fill = inadimplente), data = selected_loans) +
+  geom_histogram() +
+  scale_x_continuous(limits = c(0, quantile(selected_loans$StatedMonthlyIncome, 0.99)),
+                     breaks = seq(0, quantile(selected_loans$StatedMonthlyIncome, 0.99), 2500)) +
+  scale_fill_discrete(labels = c("Inadimplente", "Bom Pagador")) +
+   labs(title="Renda mensal por situação do mutuário", 
+     fill = "Situação",
+     y = "Número de registros",
+     x = "Renda mensal")
+
+
+
+
+```
+
+Como agora sabemos quando um mutuário está inadimplente, me surgiu uma dúvida de como ficaria a distribuição de renda mensal por situação. Com a visualização acima, fica claro que somente renda mensal alta não faz um mutuário um bom pagador. Outra observação importante é a confirmação da concentração de inadimplentes está próximo da moda da distribuição.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+ggplot(aes(x = LoanOriginalAmount, y = EstimatedReturn), 
+       data = selected_loans) +
+  geom_point(alpha = 1/20, size = 1, position = 'jitter') +
+  geom_smooth(method = 'lm', color = 'red') +
+  scale_y_continuous(limits = c(0, 0.3), labels = scales::percent) +
+   labs(title="Valor do empréstimo por retorno estimado",
+        x = "Valor do Empréstimo",
+        y = "Retorno Estimado")
+
+with(selected_loans, cor.test(LoanOriginalAmount, EstimatedReturn))
+
+```
+
+Aqui foi uma grande surpresa para mim, encontrei uma correlação negativa de -0.286 quando esperava que o retorno estimado fosse maior para os credores nos grandes empréstimos. Depois de uma pesquisa no site da Prosper, descobrir que os investidores recebem um uma porcentagem maior para os empréstimos de alto risco, sendo assim, acredito que esses retornos mais altos são de transações de alto risco.
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+ggplot(aes(x = LoanOriginalAmount, y = Investors), 
+       data = selected_loans) +
+  geom_point(alpha = 1/20, size = 1, position = 'jitter') +
+  scale_x_log10() +
+  geom_smooth(method="lm",color = 'red',  formula= (y ~ exp(x)), se=FALSE, linetype = 1) +
+  labs(title="Valor do empréstimo por número de investidores",
+        x = "Valor do Empréstimo",
+        y = "Número de Investidores")
+
+with(selected_loans, cor.test(LoanOriginalAmount, Investors))
+```
+
+Aqui foi outra surpresa, esperava um crescimento linear entre investidores e valor do empréstimo, mas encontrei algo parecido com um crescimento polinomial. Percebe-se algumas linhas verticais que pode ser exlicada pela correlação positiva fraca de 0.38.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+ggplot(aes(x = LoanStatus, y = LoanOriginalAmount), 
+       data = selected_loans) +
+  geom_boxplot(aes(fill = LoanStatus)) + 
+  theme( axis.text.x=element_text(angle=90,hjust=1,vjust=0.5)) +
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank()) +
+  labs(title="Distribuição da faixa de renda", 
+     y = "Valor do Empréstimo",
+     fill = "Situação do Empréstimo")
+
+
+
+
+with(selected_loans, by(LoanOriginalAmount, LoanStatus, summary))
+```
+
+A maioria das categorias possuem o 1º quartil igual, com exceção de algumas categorias. Outra observação interessante é que na maioria das categorias de mutuários inadimplentes, o 3 quartil é maior ou igual a 10 mil dolares.
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+box_vc <- ggplot(aes(x = ProsperRating, y = BorrowerRate), 
+       data = selected_loans) +
+  geom_boxplot(aes(fill = ProsperRating)) + 
+  scale_y_continuous( labels = scales::percent) +
+  theme( axis.text.x=element_text(angle=90,hjust=1,vjust=0.5)) +
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank()) +
+  labs(title="Taxa de Juros por Score de Crédito", 
+     y = "Taxa de Juros",
+     fill = "Score de Crédito")
+
+
+#$stats[c(1, 5)] indica que pegará os valores dos quantile do min = 1 até o limite superior do whisker 
+# se fosse $stats[c(1, 2)] iria pegar do min até o 1° quantile
+vc_ylim2 = boxplot.stats(selected_loans$BorrowerRate)$stats[c(1, 5)]
+
+# define os limites do y baseado no vc_ylim2
+c1 = box_vc + 
+  coord_cartesian(ylim = vc_ylim2) 
+
+
+c1
+
+with(selected_loans, by(BorrowerRate, ProsperRating, summary))
+```
+
+
+## Gráficos finais e sumário.
+
+### Primeira Visualização Obs: fazer uma grid comparando a faixa de renda dos estados com mais mutuários
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+selected_loans.fc_by_IncoreRange <- subset(selected_loans, selected_loans$BorrowerState == "NY") %>%
+  group_by(IncomeRange) %>%
+  summarise(n = n()) 
+
+  
+  ggplot(selected_loans.fc_by_IncoreRange, aes(x = IncomeRange, y = n, fill = IncomeRange, label = n)) +
+  geom_bar(stat = "identity") +
+  geom_text(size = 3, position = position_stack(vjust = 0.5)) + 
+  theme( axis.text.x=element_text(angle=90,hjust=1,vjust=0.5)) +
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank()) +
+  labs(title="Distribuição da faixa de renda", 
+     fill = "Faixa de Renda",
+     y="Número de Registros")
+```
+
+## Segunda visualização
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+ggplot(aes(x = LoanOriginalAmount, y = EstimatedReturn, color = ProsperRating), 
+       data = selected_loans) +
+  geom_point(alpha = 0.5, size = 1, position = 'jitter') +
+  scale_y_continuous(limits = c(0, 0.3), labels = scales::percent) +
+  geom_smooth(method = 'lm', color = 'red') +
+  scale_color_brewer(type = 'div',
+                     guide = guide_legend(title = 'Score de Risco', reverse = T,
+                                          override.aes = list(alpha = 1, size = 2))) +
+   labs(title="Retorno Estimado por Montante de Empréstimo",
+        x = "Valor do Empréstimo",
+        y = "Retorno Estimado")
+
+```
+
+Como tinha suspeitado na análise bivariada, nossa correlação negativa está diretamente relacionada com a concentração de transações de alto risco próximo ao início do eixo X, o que gera um maior retorno para os investidores. Está relação também se explica na análise univariada, quando vimos que a moda do valor original do emprestimo fica próximo de $ 5.000. Outro fator que pode ser levado em conta é o fato dos investidores não puderem emprestar mais do que 10% do seu patrimônio líquido.
+
+
+
+## Referências
+* https://stackoverflow.com/questions/45107302/error-in-seq-lennrowdata-1-argument-must-be-coercible-to-non-negative-in?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa
+* https://stackoverflow.com/questions/22458970/how-to-reverse-legend-labels-and-color-so-high-value-starts-downstairs?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa
+* https://stackoverflow.com/questions/20936840/r-get-longitude-latitude-data-for-cities-and-add-it-to-my-dataframe?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa
+* https://s3.amazonaws.com/udacity-hosted-downloads/ud651/GeographyOfAmericanMusic.html
+* https://s3.amazonaws.com/udacity-hosted-downloads/ud651/AtlanticHurricaneTracking.html
+* https://s3.amazonaws.com/content.udacity-data.com/courses/ud651/diamondsExample_2016-05.html
+* http://r-statistics.co/Top50-Ggplot2-Visualizations-MasterList-R-Code.html#Treemap
+* https://stackoverflow.com/questions/5411979/state-name-to-abbreviation-in-r?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa
+* https://stackoverflow.com/questions/6644997/showing-data-values-on-stacked-bar-chart-in-ggplot2?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa
+* https://www.prosper.com/plp/legal/compliance/
+* https://stackoverflow.com/questions/37329074/geom-smooth-and-exponential-fits
+

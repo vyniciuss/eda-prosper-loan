@@ -1,6 +1,6 @@
 ---
-title: "Análise Exploratória de dados - Prosper"
-author: "vinicius"
+title: "Análise Exploratória - Prosper Marketplace"
+author: "Vinicius Ferreira Santos"
 date: "27 de março de 2018"
 output: html_document
 ---
@@ -119,7 +119,7 @@ selected_loans$YearLoan <- as.numeric(format(
 #imprimindo informações sobre o dataset
 str(selected_loans)
 ```
-Após a criação do novo dataset com as variáveis selecionadas, continuamos com as mesmas 113.937 observações, só que agora distribuídas em 31 variáveis.
+Após a criação do novo dataset com as variáveis selecionadas, continuamos com as mesmas 113.937 observações, só que agora distribuídas em 32 variáveis.
 
 
 ## Análise Univariada
@@ -132,38 +132,25 @@ ggplot(aes(x = LoanOriginalAmount), data = selected_loans) +
   labs(title="Valores dos empréstimos", 
      x = "Valor do Empréstimo",
      y = "Número de registros")
-  
-```
 
-Como a distribuição parece uma cauda longa, limitei a visualização até 25000$ para entender melhor a distribuição. Temos alguns picos próximos de 5, 10 e 15 mil dolares. Isso é um ponto interessante, porquê podemos perceber que as pessoas costumam pegar valores próximos de múltiplos de 5.
-
-
-
-
-```{r  echo=FALSE, message=FALSE, warning=FALSE}
 ggplot(aes(x = LoanOriginalAmount), data = selected_loans) +
   geom_histogram() +
-  scale_x_continuous(limits = c(0, 25000), breaks = seq(0, 25000, 2500)) + 
+  scale_x_continuous(limits = c(0, 15000), breaks = seq(0, 15000, 2500)) + 
   labs(title="Valores dos empréstimos até 25 mil dolares", 
      x = "Valor do Empréstimo",
      y = "Número de registros")
-```
 
-Como temos uma assimetria positiva, nossa média(8.337) tende a ser maior que a mediana(6.500).
-```{r echo=FALSE, message=FALSE, warning=FALSE}
 summary(selected_loans$LoanOriginalAmount)
+  
 ```
 
-
-
-
+Como podemos perceber na primeira visualização, a distribuição possui uma assimetria positiva, o que me levou a limitar a segunda visualização até 25000$, a fim de entender melhor a distribuição. Aqui podemos perceber alguns picos próximos de 5, 10 e 15 mil dolares. Isso é um ponto interessante, porquê percebemos que as pessoas costumam pegar valores próximos de múltiplos de 5. Outro ponto é que como temos uma assimetria positiva, nossa média(8.337) tende a ser maior que a mediana(6.500), o que nos levaria a resultados errados se fôssemos utilizar a média salarial como medida de comparação.
 
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 selected_loans.fc_by_IncoreRange <- selected_loans %>%
   group_by(IncomeRange) %>%
   summarise(n = n()) 
-
 
 
 ranges <-c("$0", "$1-24,999", "$25,000-49,999", "$50,000-74,999",
@@ -388,7 +375,7 @@ ggplot(aes(x = LoanOriginalAmount, y = Investors),
   geom_smooth(method = "lm",color = 'red',  formula = poly.formula,
               fill=NA, se=TRUE, linetype = 1) +
   labs(title="Valor do empréstimo por número de investidores",
-        x = "Valor do Empréstimo",
+        x = "Valor do Empréstimo (Log 10)",
         y = "Número de Investidores")
 
 with(selected_loans, cor.test(LoanOriginalAmount, Investors))
@@ -449,7 +436,7 @@ c1
 with(selected_loans, by(BorrowerRate, ProsperRating, summary))
 ```
 
-Na visualização acima podemos perceber um crescimento linear, isso já era algo esperado porquê a taxa de juros aumenta a medida que o nível de risco também aumenta. Nós também podemos perceber um IQR muito baixo no nível de risco mais alto(HR), com a média e mediana muito próximas, o que nos leva a inferir uma simetria na distribuição.
+Na visualização acima podemos perceber um crescimento linear, isso já era algo esperado, porquê a taxa de juros aumenta a medida que o nível de risco também aumenta. Nós também podemos perceber um IQR muito baixo no nível de risco mais alto(HR). Outra descoberta nessa visualização é que todos os Scores possuem a média e mediana muito próximas, o que nos leva a inferir uma simetria na distribuição.
 
 
 
@@ -502,10 +489,10 @@ ggplot(aes(x = LoanCurrentDaysDelinquent, y = BankcardUtilization, color = Emplo
                                           override.aes = list(alpha = 1, size = 2))) +
   labs(title="Utilização do cartão de crédito por dias em atraso",
       x = "Dias em Atraso",
-      y = "Uso Cartão Crédito")
+      y = "Uso Cartão Crédito (Log 10)")
 ```
 
-Na visualização acima, eu esperava um crescimento do uso do cartão à medida que os dias em atraso fossem aumentando, mas muitos mutuários quando se tornam inadimplentes já estão com o limite do cartão estourado. Percebemos que os mutuários que mais utilizam o cartão estão empregados, e isso faz bastante sentido, o estranho aqui é que em certo ponto no tempo, a predominância muda de mutuários com o status de "Employed" para "Full-Time". 
+Na visualização acima, eu esperava um crescimento do uso do cartão à medida que os dias em atraso fossem aumentando, mas muitos mutuários quando se tornam inadimplentes, já estão com o limite do cartão estourado. Percebemos que os mutuários que mais utilizam o cartão estão empregados, e isso faz bastante sentido, o estranho aqui é que em certo ponto no tempo, a predominância muda de mutuários com o status de "Employed" para "Full-Time". 
 
 
 
@@ -524,7 +511,7 @@ ggplot(aes(x = LenderYield, fill = inadimplente),
      x = "Uso do cartão de crédito")
 ```
 
-Decidir investigar o retorno do credor para cada situação de emprego do mutuário e encontrei algumas situações interessantes. Aqui podemos perceber que todas as situações de emprego possuem um pico elevado na casa dos 30% e os mutuários "Retired" são os únicos que possuem 2 picos acima de 30%. Os mutuários "Full-time" e "Not available" possuem elevadas parcelas de inadimplentes comparado aos bons pagadores.
+Decidir investigar o retorno do credor para cada situação de emprego do mutuário e encontrei algumas situações interessantes. Aqui podemos perceber que todas as situações de emprego possuem um pico elevado na casa dos 30% e os mutuários "Retired" são os únicos que possuem 2 picos consideráveis na casa dos 30%. Os mutuários "Full-time" e "Not available" possuem elevadas parcelas de inadimplentes comparado aos bons pagadores.
 
 
 
@@ -545,36 +532,63 @@ ggplot(aes(x = YearLoan,  y = OnTimeProsperPayments),
      x = "Ano do pagamento")
 ```
 
-Podemos visualizar que mesmo no período da crise financeira de 2008, houve um crescimento constante no número de pagamentos em dia, mas logo após o ano de 2010, houve uma queda acentuada nos pagamentos. Outro ponto de interessante é o número de pagamentos crescente entre mutuários desempregados e com renda $0. Aqui poderia ter várias explicações possíveis para isso, mas acredito estes mutuários devem ter conseguido emprego logo após os empréstimos ou podem ter rendas informais.
+Podemos visualizar que mesmo no período da crise financeira de 2008, houve um crescimento constante no número de pagamentos em dia, mas logo após o ano de 2010, houve uma queda acentuada nos pagamentos. Outro ponto de interessante é o número de pagamentos crescente entre mutuários desempregados e com renda $0. Aqui poderia ter várias explicações possíveis para isso, mas acredito que estes mutuários devem ter conseguido emprego logo após os empréstimos ou podem ter rendas informais.
 
 ## Gráficos finais e sumário.
 
 
 
-### Primeira Visualização Obs: fazer uma grid comparando a faixa de renda dos estados com mais mutuários
-
-
+### Primeira Visualização 
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
-
-selected_loans.fc_by_IncoreRange <- subset(selected_loans, selected_loans$BorrowerState == "NY") %>%
-  group_by(IncomeRange) %>%
-  summarise(n = n()) 
-
-  
-  ggplot(selected_loans.fc_by_IncoreRange, aes(x = IncomeRange, y = n, fill = IncomeRange, label = n)) +
-  geom_bar(stat = "identity") +
-  geom_text(size = 3, position = position_stack(vjust = 0.5)) + 
-  theme( axis.text.x=element_text(angle=90,hjust=1,vjust=0.5)) +
-  theme(axis.title.x=element_blank(),
-        axis.text.x=element_blank(),
-        axis.ticks.x=element_blank()) +
-  labs(title="Distribuição da faixa de renda", 
-     fill = "Faixa de Renda",
-     y="Número de Registros")
+ggplot(aes(x = YearLoan,  y = LenderYield), 
+       data = subset(selected_loans, !is.na(BorrowerState))) +
+  geom_line(stat = 'summary', fun.y = median) +
+  scale_y_continuous(labels = scales::percent) +
+  facet_wrap(~ BorrowerState) +
+  theme(legend.position = "bottom") + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 1), axis.ticks = element_blank()) + 
+   labs(title="Rendimentos do credor entre 2006 a 2014 por estado", 
+     y = "Rendimentos do credor",
+     x = "Ano dos rendimentos") 
 ```
 
-## Segunda visualização
+Na análise univariada visualizamos um mapa demonstrando a concentração mutuários inadimplentes e bons pagadores em seus respectivos estados. Isso me deu curiosidade em saber como seria os rendimentos dos credores separados por estado, para isso, criei a visualização acima. Podemos perceber um crescimento constante dos rendimentos na maioria dos estados entre 2006 e 2010, com exceção de alguns estados como Montana(MT) e Novo México(NM), onde estavam diminuindo os rendimentos e depois voltaram a subir em 2010. A explicação desse pico em 2010, acredito estar relacionado com a crise mundial de 2008, onde muitos mutuários ficaram endividados/desempregados e recorreram aos empréstimos, sendo categorizados como mutuários de alto risco. A queda após 2010 deve estar relacionado com a leve melhora da economia, onde muitos investidores que financiavam os empréstimos, encontravam os mutuários já em uma situação financeira/emprego mais estável, o que levava a uma categorização de menor risco e consequentemente menor rendimento.
+
+### Segunda visualização
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+selected_loans.fc_by_Category_inadimplente <- selected_loans %>%
+  group_by(ListingCategory, inadimplente) %>%
+  summarise(n = n()) 
+
+
+ggplot(selected_loans.fc_by_Category_inadimplente, 
+       aes(x = ListingCategory, y = n, 
+           label = n, fill = inadimplente)) +
+  geom_bar(stat = "identity") +
+  scale_x_discrete(limits = categories) +  
+  scale_y_log10() +
+  geom_text(size = 3, 
+            position = position_stack(vjust = 0.8)) + 
+  scale_fill_discrete(labels = c("Bom Pagador", "Inadimplente")) +
+  theme(legend.position = "bottom") + 
+  theme(axis.text.x = element_text(angle = 90, vjust = -2.5), 
+        axis.ticks = element_blank(), 
+        axis.text.y = element_blank()) + 
+  labs(title="Motivação para adquirir um empréstimo x Situação do Mutuário", 
+   x = "Motivo do empréstimo",
+   y = "Número de registros (Log 10)",
+   fill = "Situação")
+
+print('Situação de emprego dos mutuários que solicitaram empréstivo para RV')
+loans_Rv <- subset(selected_loans, selected_loans$ListingCategory == 17)
+table(loans_Rv$EmploymentStatus)
+```
+
+Aqui o propósito é identificar a situação do mutuário para cada categoria de solicitação do empréstimo que vimos anteriormente. Eu imaginava encontrar uma categoria que tivesse mais inadimplentes que bons pagadores, mas podemos perceber que não existe tal situação. O que me chamou mais atenção foi que emprestar dinheiro para (RV) e (boat) é um bom negócio. Com uma pesquisada rápida no google, descobrir que "RV" são aqueles "ônibus casa", isso faz muito sentido, porquê normalmente quem compra esse tipo de veículo está com uma vida financeira estável, o que foi devidamente comprovado na segunda visualização. O item que mais me chamava atenção era "Baby&Adoption", porquê é um momento em que as despesas crescem muito na vida de um casal, mas pelo que vimos, os mutuários dessa categoria são, em grande maioria, bons pagadores.
+
+### Terceira visualização
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 
@@ -590,10 +604,19 @@ ggplot(aes(x = LoanOriginalAmount, y = EstimatedReturn, color = ProsperRating),
         x = "Valor do Empréstimo",
         y = "Retorno Estimado")
 
+with(selected_loans, cor.test(LoanOriginalAmount, EstimatedReturn))
+
 ```
 
 Como tinha suspeitado na análise bivariada, nossa correlação negativa está diretamente relacionada com a concentração de transações de alto risco próximo ao início do eixo X, o que gera um maior retorno para os investidores. Está relação também se explica na análise univariada, quando vimos que a moda do valor original do emprestimo fica próximo de $ 5.000. Outro fator que pode ser levado em conta é o fato dos investidores não puderem emprestar mais do que 10% do seu patrimônio líquido.
 
+## Reflexão
+
+Analisar o dataset da Prosper foi algo bastante interessante. Navegar entre os 113.937 empréstimos com 81 variáveis foi algo bastante desafiador, por isso  separei 32 variáveis de interesse e mesmo assim não conseguir utilizar todas como deveria. O maior desafio aqui, foi entender todas essas informações sendo um leigo no assunto da área de empréstimos peer-to-peer. Me concentrei em tentar identificar padrões entre mutuários inadimplentes/bons pagadores e os padrões que afetam o rendimento dos credores.
+
+Tive sucesso ao identificar o motivo da queda no retorno estimado dos credores, devido aos investimentos iniciais estarem diretamente relacionado a empréstimos de alto risco. Outra grande descoberta foi um crescimento nos pagamentos em dia durante a crise financeira de 2008, principalmente para mutuários que declararam renda de $0 e desempregados. Além dessas grandes descobertas, fiquei um pouco decepcionado com a relação entre o número investidores e valor do empréstimo. Acreditava que encontraria um crescimento linear, mas achei um crescimento polinomial. A maior surpresa foi quando descobri que um mutuário com uma renda mensal de quase 2 milhões, solicitou um empréstimo de 4 mil dolares.
+
+Acredito que o trabalho foi interessante, com grandes descobertas em varios pontos, mas sei que ficaram alguns pontos sem explicação devido a quantidade de variáveis analisadas, pouco tempo e falta de informações importantes como: estado civil, sexo, situação de emprego do cônjugue, ou seja, informações mais pessois dos mutuários. Para trabalhos futuros, penso em fechar o estudo com as variáveis que não foram exploradas, a fim de desenvolver alguns modelos de regressão para tentar prever quando uma solicitação de empréstimo é um bom investimento.  
 
 
 ## Referências

@@ -144,7 +144,7 @@ summary(selected_loans$LoanOriginalAmount)
   
 ```
 
-Como podemos perceber na primeira visualização, a distribuição possui uma assimetria positiva, o que me levou a limitar a segunda visualização até 25000$, a fim de entender melhor a distribuição. Aqui podemos perceber alguns picos próximos de 5, 10 e 15 mil dolares. Isso é um ponto interessante, porquê percebemos que as pessoas costumam pegar valores próximos de múltiplos de 5. Outro ponto é que como temos uma assimetria positiva, nossa média(8.337) tende a ser maior que a mediana(6.500), o que nos levaria a resultados errados se fôssemos utilizar a média salarial como medida de comparação.
+Como podemos perceber na primeira visualização, a distribuição possui uma assimetria positiva, o que me levou a limitar a segunda visualização até 25000$, a fim de entender melhor a distribuição. Depois dos ajustes, percebemos alguns picos próximos de 5, 10 e 15 mil dolares. Isso é um ponto interessante, porquê percebemos que as pessoas costumam pegar valores próximos de múltiplos de 5. Outro ponto é que como temos uma assimetria positiva, nossa média(8.337) tende a ser maior que a mediana(6.500), o que nos levaria a resultados errados se fôssemos utilizar a média salarial como medida de comparação.
 
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
@@ -206,7 +206,7 @@ ggplot(aes(x = LoanStatus, fill = LoanStatus), data = selected_loans) +
 
 ```
 
-Podemos visualizar que temos surpreendentes 56576 empréstimos em vigor que juntos somam $586.174.602 e outros 38074 completados que somam $235.643.536. Temos também alguns mutuários inadimplentes separados em diferentes categorias que, até então, estão dando um calote de $ 126.356.754.
+Podemos visualizar que a maioria dos dados se encontra com a situação "current", com surpreendentes 56576 empréstimos, que juntos somam $586.174.602 e outros 38074 "Completed" que somam $235.643.536. Temos também alguns mutuários inadimplentes separados em diferentes categorias que, até então, estão dando um calote de $ 126.356.754.
 
 
 
@@ -401,7 +401,7 @@ ggplot(aes(x = LoanStatus, y = LoanOriginalAmount),
 with(selected_loans, by(LoanOriginalAmount, LoanStatus, summary))
 ```
 
-A maioria das categorias possuem o 1º quartil igual, com exceção de algumas categorias. Outra observação interessante é que na maioria das categorias de mutuários inadimplentes, o 3 quartil é maior ou igual a 10 mil dolares.
+A maioria das categorias possuem o 1º quartil igual, com algumas exceções. Outra observação interessante é que na maioria das categorias de mutuários inadimplentes, o 3 quartil é maior ou igual a 10 mil dolares.
 
 
 
@@ -436,7 +436,7 @@ c1
 with(selected_loans, by(BorrowerRate, ProsperRating, summary))
 ```
 
-Na visualização acima podemos perceber um crescimento linear, isso já era algo esperado, porquê a taxa de juros aumenta a medida que o nível de risco também aumenta. Nós também podemos perceber um IQR muito baixo no nível de risco mais alto(HR). Outra descoberta nessa visualização é que todos os Scores possuem a média e mediana muito próximas, o que nos leva a inferir uma simetria na distribuição.
+Na visualização acima podemos perceber um crescimento linear, isso já era algo esperado, porquê a taxa de juros aumenta a medida que o nível de risco também aumenta. Nós também percebemos um IQR muito baixo no nível de risco mais alto(HR). Outra descoberta nessa visualização é que todos os Scores possuem a média e mediana muito próximas, o que nos leva a inferir uma simetria na distribuição.
 
 
 
@@ -472,7 +472,7 @@ grid.arrange(p1, p2, ncol = 1)
 
 ```
 
-Na visualização acima examinei a média de uso do cartão de crédito por score de risco. Podemos perceber uma tendência entre as duas variáveis, o uso do cartão de crédito aumenta na medida que o score de risco do mutuário também aumenta. Os mutuários de maior risco utilizam em média mais de 50% do crédito rotativo disponível nos cartões, mas podemos ver que essa tendência ocorre tanto para os inadimplente quanto para os bons pagadores.
+Na visualização acima examinei a média de uso do cartão de crédito por score de risco. Podemos perceber uma tendência entre as duas variáveis, o uso do cartão de crédito aumenta na medida que o score de risco do mutuário também aumenta. Os mutuários de maior risco utilizam em média mais de 50% do crédito rotativo disponível nos cartões, mas identificamos que essa tendência ocorre tanto para os inadimplente quanto para os bons pagadores.
 
 ## Análise Multivariada
 
@@ -511,7 +511,7 @@ ggplot(aes(x = LenderYield, fill = inadimplente),
      x = "Uso do cartão de crédito")
 ```
 
-Decidir investigar o retorno do credor para cada situação de emprego do mutuário e encontrei algumas situações interessantes. Aqui podemos perceber que todas as situações de emprego possuem um pico elevado na casa dos 30% e os mutuários "Retired" são os únicos que possuem 2 picos consideráveis na casa dos 30%. Os mutuários "Full-time" e "Not available" possuem elevadas parcelas de inadimplentes comparado aos bons pagadores.
+Decidir investigar o retorno do credor para cada situação de emprego do mutuário e encontrei algumas situações interessantes. Aqui identificamos que todas as situações de emprego possuem um pico elevado na casa dos 30% e os mutuários "Retired" são os únicos que possuem 2 picos consideráveis na casa dos 30%. Os mutuários "Full-time" e "Not available" possuem elevadas parcelas de inadimplentes comparado aos bons pagadores.
 
 
 
@@ -553,7 +553,7 @@ ggplot(aes(x = YearLoan,  y = LenderYield),
      x = "Ano dos rendimentos") 
 ```
 
-Na análise univariada visualizamos um mapa demonstrando a concentração mutuários inadimplentes e bons pagadores em seus respectivos estados. Isso me deu curiosidade em saber como seria os rendimentos dos credores separados por estado, para isso, criei a visualização acima. Podemos perceber um crescimento constante dos rendimentos na maioria dos estados entre 2006 e 2010, com exceção de alguns estados como Montana(MT) e Novo México(NM), onde estavam diminuindo os rendimentos e depois voltaram a subir em 2010. A explicação desse pico em 2010, acredito estar relacionado com a crise mundial de 2008, onde muitos mutuários ficaram endividados/desempregados e recorreram aos empréstimos, sendo categorizados como mutuários de alto risco. A queda após 2010 deve estar relacionado com a leve melhora da economia, onde muitos investidores que financiavam os empréstimos, encontravam os mutuários já em uma situação financeira/emprego mais estável, o que levava a uma categorização de menor risco e consequentemente menor rendimento.
+Na análise univariada visualizamos um mapa demonstrando a concentração mutuários inadimplentes e bons pagadores em seus respectivos estados. Isso me deu curiosidade em saber como seria os rendimentos dos credores separados por estado, para isso, criei a visualização acima. Visualizamos um crescimento constante dos rendimentos na maioria dos estados entre 2006 e 2010, com exceção de alguns estados como Montana(MT) e Novo México(NM), onde estavam diminuindo os rendimentos e depois voltaram a subir em 2010. A explicação desse pico em 2010, acredito estar relacionado com a crise mundial de 2008, onde muitos mutuários ficaram endividados/desempregados e recorreram aos empréstimos, sendo categorizados como mutuários de alto risco. A queda após 2010 deve estar relacionado com a leve melhora da economia, onde muitos investidores que financiavam os empréstimos, encontravam os mutuários já em uma situação financeira/emprego mais estável, o que levava a uma categorização de menor risco e consequentemente menor rendimento.
 
 ### Segunda visualização
 
@@ -586,7 +586,7 @@ loans_Rv <- subset(selected_loans, selected_loans$ListingCategory == 17)
 table(loans_Rv$EmploymentStatus)
 ```
 
-Aqui o propósito é identificar a situação do mutuário para cada categoria de solicitação do empréstimo que vimos anteriormente. Eu imaginava encontrar uma categoria que tivesse mais inadimplentes que bons pagadores, mas podemos perceber que não existe tal situação. O que me chamou mais atenção foi que emprestar dinheiro para (RV) e (boat) é um bom negócio. Com uma pesquisada rápida no google, descobrir que "RV" são aqueles "ônibus casa", isso faz muito sentido, porquê normalmente quem compra esse tipo de veículo está com uma vida financeira estável, o que foi devidamente comprovado na segunda visualização. O item que mais me chamava atenção era "Baby&Adoption", porquê é um momento em que as despesas crescem muito na vida de um casal, mas pelo que vimos, os mutuários dessa categoria são, em grande maioria, bons pagadores.
+Aqui o propósito é identificar a situação do mutuário para cada categoria de solicitação do empréstimo que vimos anteriormente. Eu imaginava encontrar uma categoria que tivesse mais inadimplentes que bons pagadores, mas percebemos que não existe tal situação. O que me chamou mais atenção foi que emprestar dinheiro para (RV) e (boat) é um bom negócio. Com uma pesquisada rápida no google, descobrir que "RV" são aqueles "ônibus casa", isso faz muito sentido, porquê normalmente quem compra esse tipo de veículo está com uma vida financeira estável, o que foi devidamente comprovado na segunda visualização. O item que mais me chamava atenção era "Baby&Adoption", porquê é um momento em que as despesas crescem muito na vida de um casal, mas pelo que vimos, os mutuários dessa categoria são, em grande maioria, bons pagadores.
 
 ### Terceira visualização
 

@@ -204,6 +204,8 @@ ggplot(aes(x = LoanStatus, fill = LoanStatus), data = selected_loans) +
      fill = "Situação",
      y = "Número de registros")
 
+table(selected_loans$LoanStatus)
+
 ```
 
 Podemos visualizar que a maioria dos dados se encontra com a situação "current", com surpreendentes 56576 empréstimos, que juntos somam $586.174.602 e outros 38074 "Completed" que somam $235.643.536. Temos também alguns mutuários inadimplentes separados em diferentes categorias que, até então, estão dando um calote de $ 126.356.754.

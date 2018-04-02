@@ -187,7 +187,7 @@ ggplot(aes(x = StatedMonthlyIncome), data = selected_loans) +
 
 summary(selected_loans$StatedMonthlyIncome)
 ```
-Como já previa, a distribuição da renda mensal possui uma assimetria positiva, com uma concentração próxima de $ 5.000. Para analisar melhor a distribuição, decidir excluir 1% dos dados superiores, mas, antes disso, descobri que um mutuário com uma renda mensal de quase 2 milhões de dolares, solicitou um empréstimo de 4 mil dolares. Acredito que esse mutuário estava interessado em participar como investidor e fez um empréstimo baixo para verificar a lisura do funcionamento da Prosper.
+Como já previa, a distribuição da renda mensal possui uma assimetria positiva, com uma concentração próxima de $ 5.000. Para analisar melhor a distribuição, decidi exclui 1% dos dados superiores, mas, antes disso, descobri que um mutuário com uma renda mensal de quase 2 milhões de dolares, solicitou um empréstimo de 4 mil dolares. Acredito que esse mutuário estava interessado em participar como investidor e fez um empréstimo baixo para verificar a lisura do funcionamento da Prosper.
 
 
 
@@ -363,7 +363,7 @@ with(selected_loans, cor.test(LoanOriginalAmount, EstimatedReturn))
 
 ```
 
-Aqui foi uma grande surpresa para mim, encontrei uma correlação negativa de -0.286 quando esperava que o retorno estimado fosse maior para os credores nos grandes empréstimos. Depois de uma pesquisa no site da Prosper, descobrir que os investidores recebem um uma porcentagem maior para os empréstimos de alto risco, sendo assim, acredito que esses retornos mais altos são de transações de alto risco.
+Aqui foi uma grande surpresa para mim, encontrei uma correlação negativa de -0.286 quando esperava que o retorno estimado fosse maior para os credores nos grandes empréstimos. Depois de uma pesquisa no site da Prosper, descobri que os investidores recebem um uma porcentagem maior para os empréstimos de alto risco, sendo assim, acredito que esses retornos mais altos são de transações de alto risco.
 
 
 
@@ -513,7 +513,7 @@ ggplot(aes(x = LenderYield, fill = inadimplente),
      x = "Uso do cartão de crédito")
 ```
 
-Decidir investigar o retorno do credor para cada situação de emprego do mutuário e encontrei algumas situações interessantes. Aqui identificamos que todas as situações de emprego possuem um pico elevado na casa dos 30% e os mutuários "Retired" são os únicos que possuem 2 picos consideráveis na casa dos 30%. Os mutuários "Full-time" e "Not available" possuem elevadas parcelas de inadimplentes comparado aos bons pagadores.
+Decidi investigar o retorno do credor para cada situação de emprego do mutuário e encontrei algumas situações interessantes. Aqui identificamos que todas as situações de emprego possuem um pico elevado na casa dos 30% e os mutuários "Retired" são os únicos que possuem 2 picos consideráveis na casa dos 30%. Os mutuários "Full-time" e "Not available" possuem elevadas parcelas de inadimplentes comparado aos bons pagadores.
 
 
 
@@ -555,7 +555,7 @@ ggplot(aes(x = YearLoan,  y = LenderYield),
      x = "Ano dos rendimentos") 
 ```
 
-Na análise univariada visualizamos um mapa demonstrando a concentração mutuários inadimplentes e bons pagadores em seus respectivos estados. Isso me deu curiosidade em saber como seria os rendimentos dos credores separados por estado, para isso, criei a visualização acima. Visualizamos um crescimento constante dos rendimentos na maioria dos estados entre 2006 e 2010, com exceção de alguns estados como Montana(MT) e Novo México(NM), onde estavam diminuindo os rendimentos e depois voltaram a subir em 2010. A explicação desse pico em 2010, acredito estar relacionado com a crise mundial de 2008, onde muitos mutuários ficaram endividados/desempregados e recorreram aos empréstimos, sendo categorizados como mutuários de alto risco. A queda após 2010 deve estar relacionado com a leve melhora da economia, onde muitos investidores encontravam os mutuários já em uma situação financeira/emprego mais estável, o que levava a uma categorização de menor risco e consequentemente menor rendimento.
+Na análise univariada visualizamos um mapa demonstrando a concentração mutuários inadimplentes e bons pagadores em seus respectivos estados. Isso me deu curiosidade em saber como seria os rendimentos dos credores separados por estado, para isso, criei a visualização acima. Visualizamos um crescimento constante dos rendimentos na maioria dos estados entre 2006 e 2010, com exceção de alguns estados como Montana(MT) e Novo México(NM), onde estavam diminuindo os rendimentos e depois voltaram a subi em 2010. A explicação desse pico em 2010, acredito estar relacionado com a crise mundial de 2008, onde muitos mutuários ficaram endividados/desempregados e recorreram aos empréstimos, sendo categorizados como mutuários de alto risco. A queda após 2010 deve estar relacionado com a leve melhora da economia, onde muitos investidores encontravam os mutuários já em uma situação financeira/emprego mais estável, o que levava a uma categorização de menor risco e consequentemente menor rendimento.
 
 ### Segunda visualização
 
@@ -588,7 +588,7 @@ loans_Rv <- subset(selected_loans, selected_loans$ListingCategory == 17)
 table(loans_Rv$EmploymentStatus)
 ```
 
-Aqui o propósito é identificar a situação do mutuário para cada categoria de solicitação do empréstimo que vimos anteriormente. Eu imaginava encontrar uma categoria que tivesse mais inadimplentes que bons pagadores, mas percebemos que não existe tal situação. O que me chamou mais atenção foi que emprestar dinheiro para (RV) e (boat) é um bom negócio. Com uma pesquisada rápida no google, descobrir que "RV" são aqueles "ônibus casa", isso faz muito sentido, porque normalmente quem compra esse tipo de veículo está com uma vida financeira estável, o que foi devidamente comprovado na segunda visualização. O item que mais me chamava atenção era "Baby&Adoption", porque é um momento em que as despesas crescem muito na vida de um casal, mas pelo que vimos, os mutuários dessa categoria são, em grande maioria, bons pagadores.
+Aqui o propósito é identificar a situação do mutuário para cada categoria de solicitação do empréstimo que vimos anteriormente. Eu imaginava encontrar uma categoria que tivesse mais inadimplentes que bons pagadores, mas percebemos que não existe tal situação. O que me chamou mais atenção foi que emprestar dinheiro para (RV) e (boat) é um bom negócio. Com uma pesquisada rápida no google, descobri que "RV" são aqueles "ônibus casa", isso faz muito sentido, porque normalmente quem compra esse tipo de veículo está com uma vida financeira estável, o que foi devidamente comprovado na segunda visualização. O item que mais me chamava atenção era "Baby&Adoption", porque é um momento em que as despesas crescem muito na vida de um casal, mas pelo que vimos, os mutuários dessa categoria são, em grande maioria, bons pagadores.
 
 ### Terceira visualização
 
@@ -614,9 +614,9 @@ Como tinha suspeitado na análise bivariada, nossa correlação negativa está diret
 
 ## Reflexão
 
-Analisar o dataset da Prosper foi algo bastante interessante. Navegar entre os 113.937 empréstimos com 81 variáveis foi algo bastante desafiador, por isso  separei 32 variáveis de interesse e mesmo assim não conseguir utilizar todas como deveria. O maior desafio aqui, foi entender todas essas informações sendo um leigo no assunto da área de empréstimos peer-to-peer. Me concentrei em tentar identificar padrões entre mutuários inadimplentes/bons pagadores e os padrões que afetam o rendimento dos credores.
+Analisar o dataset da Prosper foi algo muito interessante. Navegar entre os 113.937 empréstimos com 81 variáveis foi algo desafiador, por isso  separei 32 variáveis de interesse e mesmo assim não consegui utilizar todas como deveria. O maior desafio aqui, foi entender todas essas informações sendo um leigo no assunto da área de empréstimos peer-to-peer. Me concentrei em tentar identificar padrões entre mutuários inadimplentes/bons pagadores e os padrões que afetam o rendimento dos credores.
 
-Tive sucesso ao identificar o motivo da queda no retorno estimado dos credores, devido aos investimentos iniciais estarem diretamente relacionado a empréstimos de alto risco. Outra grande descoberta foi um crescimento nos pagamentos em dia durante a crise financeira de 2008, principalmente para mutuários que declararam renda de $0 e desempregados. Além dessas grandes descobertas, fiquei um pouco decepcionado com a relação entre o número investidores e valor do empréstimo. Acreditava que encontraria um crescimento linear, mas achei um crescimento polinomial. A maior surpresa foi quando descobri que um mutuário com uma renda mensal de quase 2 milhões, solicitou um empréstimo de 4 mil dolares.
+Tive sucesso ao identificar o motivo da queda no retorno estimado dos credores, devido aos investimentos iniciais estarem diretamente relacionado a empréstimos de alto risco. Outra grande descoberta foi um crescimento nos pagamentos em dia durante a crise financeira de 2008, principalmente para mutuários que declararam renda de $0 e desempregados. A maior surpresa foi quando descobri que um mutuário com uma renda mensal de quase 2 milhões, solicitou um empréstimo de 4 mil dolares. Além dessas grandes descobertas, fiquei um pouco decepcionado com a relação entre o número investidores e valor do empréstimo. Acreditava que encontraria um crescimento linear, mas achei um crescimento polinomial. 
 
 Acredito que o trabalho foi interessante, com grandes descobertas em varios pontos, mas sei que ficaram alguns pontos sem explicação devido a quantidade de variáveis analisadas, pouco tempo e falta de informações importantes como: estado civil, sexo, situação de emprego do cônjugue, ou seja, informações mais pessoais dos mutuários. Para trabalhos futuros, penso em fechar o estudo com as variáveis que não foram exploradas, a fim de desenvolver alguns modelos de regressão para tentar prever quando uma solicitação de empréstimo é um bom investimento.  
 

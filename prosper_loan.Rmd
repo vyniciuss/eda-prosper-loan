@@ -135,7 +135,7 @@ ggplot(aes(x = LoanOriginalAmount), data = selected_loans) +
 
 ggplot(aes(x = LoanOriginalAmount), data = selected_loans) +
   geom_histogram() +
-  scale_x_continuous(limits = c(0, 15000), breaks = seq(0, 15000, 2500)) + 
+  scale_x_continuous(limits = c(0, 25000), breaks = seq(0, 25000, 2500)) + 
   labs(title="Valores dos empréstimos até 25 mil dolares", 
      x = "Valor do Empréstimo",
      y = "Número de registros")

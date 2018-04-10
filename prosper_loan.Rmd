@@ -101,20 +101,31 @@ loan_data <- read.csv("prosperLoanData.csv", na.strings=c("","NA"))
 #Alterando o nome de ListingCategory..numeric. para ListingCategory
 names(loan_data)[17]<-paste("ListingCategory")
 names(loan_data)[15]<-paste("ProsperRating")
-
-selected_columns <- c("ListingCreationDate","Term","LoanStatus","ClosedDate","BorrowerRate",
-                      "LenderYield","EstimatedReturn","ProsperScore",
-                      "ListingCategory","BorrowerState", "Occupation","EmploymentStatus","EmploymentStatusDuration",
-                      "IsBorrowerHomeowner", "FirstRecordedCreditLine","BankcardUtilization",                                                     "AvailableBankcardCredit","TradesOpenedLast6Months",
-                      "StatedMonthlyIncome", "TotalProsperLoans","OnTimeProsperPayments","LoanCurrentDaysDelinquent",
-                      "LoanMonthsSinceOrigination","LoanOriginalAmount","LoanOriginationDate","LoanOriginationQuarter",
-                      "MonthlyLoanPayment","Investors", "Recommendations", "IncomeRange", "ProsperRating")
+#definindo as colunas que serão utilizadas na análise
+selected_columns <- c("ListingCreationDate","Term","LoanStatus","ClosedDate",
+                      "BorrowerRate", "LenderYield","EstimatedReturn",
+                      "ProsperScore", "ListingCategory","BorrowerState", 
+                      "Occupation","EmploymentStatus","EmploymentStatusDuration",
+                      "IsBorrowerHomeowner", "FirstRecordedCreditLine",
+                      "BankcardUtilization","AvailableBankcardCredit",
+                      "TradesOpenedLast6Months","StatedMonthlyIncome",
+                      "TotalProsperLoans","OnTimeProsperPayments",
+                      "LoanCurrentDaysDelinquent","LoanMonthsSinceOrigination",
+                      "LoanOriginalAmount","LoanOriginationDate",
+                      "LoanOriginationQuarter","MonthlyLoanPayment","Investors",
+                      "Recommendations", "IncomeRange", "ProsperRating")
 #Separando um dataset novo com as colunas selecionadas
 selected_loans <- subset(loan_data, select = selected_columns)
-selected_loans$LoanOriginationDate <- as.character(selected_loans$LoanOriginationDate)
-selected_loans$LoanOriginationDate <- as.Date(selected_loans$LoanOriginationDate, format= "%Y-%m-%d")
+#convertendo para caracter
+selected_loans$LoanOriginationDate <- as.character(
+                                             selected_loans$LoanOriginationDate)
+#convertendo para data
+selected_loans$LoanOriginationDate <- as.Date(
+                                            selected_loans$LoanOriginationDate,
+                                            format= "%Y-%m-%d")
+#obtendo o ano da data correspondente
 selected_loans$YearLoan <- as.numeric(format(
-                                      as.Date(selected_loans$ListingCreationDate), 
+                                    as.Date(selected_loans$ListingCreationDate), 
                                       "%Y"))
 #imprimindo informações sobre o dataset
 str(selected_loans)
@@ -127,19 +138,21 @@ Após a criação do novo dataset com as variáveis selecionadas, continuamos com as
 
 Para iniciar a análise, iremos começar pela distribuição do valor original dos empréstimos 
 ```{r pressure, echo=FALSE, message=FALSE, warning=FALSE}
+#Responsável por exibir o valor dos empréstimos com todos os dados
 ggplot(aes(x = LoanOriginalAmount), data = selected_loans) +
   geom_histogram() + 
   labs(title="Valores dos empréstimos", 
      x = "Valor do Empréstimo",
      y = "Número de registros")
 
+#Responsável por exibir os dados limitando o eixo X
 ggplot(aes(x = LoanOriginalAmount), data = selected_loans) +
   geom_histogram() +
   scale_x_continuous(limits = c(0, 25000), breaks = seq(0, 25000, 2500)) + 
   labs(title="Valores dos empréstimos até 25 mil dolares", 
      x = "Valor do Empréstimo",
      y = "Número de registros")
-
+#Exibe o sumário do valor do empréstimo
 summary(selected_loans$LoanOriginalAmount)
   
 ```
@@ -148,15 +161,18 @@ Como podemos perceber na primeira visualização, a distribuição possui uma assime
 
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
+#cria um agrupamento pela faixa de renda
 selected_loans.fc_by_IncoreRange <- selected_loans %>%
   group_by(IncomeRange) %>%
   summarise(n = n()) 
 
-
+#labels dos ranges na ordem que serão exibidos
 ranges <-c("$0", "$1-24,999", "$25,000-49,999", "$50,000-74,999",
-                               "$75,000-99,999","$100,000+", "Not employed", "Not displayed")
+           "$75,000-99,999","$100,000+","Not employed", "Not displayed")
 
-  ggplot(selected_loans.fc_by_IncoreRange, aes(x = IncomeRange, y = n, label = n)) +
+#Responsável por exibir a distribuição da faixa de renda
+  ggplot(selected_loans.fc_by_IncoreRange, 
+         aes(x = IncomeRange, y = n, label = n)) +
   geom_bar(stat = "identity", fill ="lightgray") +
   scale_x_discrete(limits = ranges) +  
   geom_text(size = 3, position = position_stack(vjust = 0.5)) + 
@@ -167,7 +183,7 @@ ranges <-c("$0", "$1-24,999", "$25,000-49,999", "$50,000-74,999",
      fill = "Faixa de Renda",
      y="Número de Empréstimos",
      x = "Faixa de Renda")
-
+#Exibe os dados da faixa de renda em uma tabela
 table(selected_loans$IncomeRange)
 ```
 A grande concentração de renda dos mutuários está entre $25.000 e $49.999 por ano. A grande descoberta aqui são 1.427 mutuários entre os desempregados e os que não possuem renda estarem conseguindo empréstimos. Como ainda não explorei todas as possíveis informações dos dados, acredito que para os desempregados, a explicação seria informações de renda salarial de empregos anteriores, mas para os com renda $0, acredito que em sua maioria são estudantes ou pessoas com boas recomendações.
@@ -177,10 +193,15 @@ A grande concentração de renda dos mutuários está entre $25.000 e $49.999 por an
 
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
+#Responsável por exibir a distribuição da renda mensal dos mutuários.
 ggplot(aes(x = StatedMonthlyIncome), data = selected_loans) +
   geom_histogram() +
-  scale_x_continuous(limits = c(0, quantile(selected_loans$StatedMonthlyIncome, 0.99)),
-                     breaks = seq(0, quantile(selected_loans$StatedMonthlyIncome, 0.99), 2500)) +
+  scale_x_continuous(limits = c(0, quantile(
+                                    selected_loans$StatedMonthlyIncome, 0.99)),
+                     breaks = seq(0, 
+                                  quantile(
+                                    selected_loans$StatedMonthlyIncome, 0.99), 
+                                    2500)) +
    labs(title="Renda mensal dos mutuários", 
      x = "Renda mensal",
      y = "Número de registros")
@@ -193,7 +214,7 @@ Como já previa, a distribuição da renda mensal possui uma assimetria positiva, c
 
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
-
+#Responsável por exibir um gráfico de barras das situações dos empréstimos
 ggplot(aes(x = LoanStatus, fill = LoanStatus), data = selected_loans) +
   geom_bar() + 
   theme(axis.text.x=element_text(angle=90,hjust=1,vjust=0.5)) +
@@ -214,6 +235,7 @@ Podemos visualizar que a maioria dos dados se encontra com a situação "current",
 
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
+#Responsável por exibir um histograma dos scores de risco dos empréstimos
 ggplot(aes(x = ProsperScore), data = selected_loans) +
   geom_histogram() + 
   scale_x_continuous(limits = c(0,12), breaks =  seq(0, 12, 1))
@@ -227,7 +249,8 @@ O score dos mutuários demonstram algo parecido com uma distribuição normal, mas 
 Como identificamos um grande número de inadimplentes separados em diferentes categorias, será criada a variável "inadimplente", a fim de identificar com mais facilidade um mutuário inadimplente e um bom pagador.
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
-#definindo inadimplente 
+#criando a variável inadimplente que indica quando um mutuário está inadimplente
+# de acordo com o status do empréstimo
 selected_loans$inadimplente <- as.factor(ifelse(
                                       selected_loans$LoanStatus == "Defaulted" |
                                       selected_loans$LoanStatus == "Chargedoff" |
@@ -244,18 +267,26 @@ map <- map_data("state")
 #cria um dataframe com lat, long e abreviação do nome dos estados.
 states <- data.frame(state.center, state.abb)
 #recupera o nome completo dos estado a partir da abreviação.
-selected_loans$stateFullName <- tolower(state.name[match(selected_loans$BorrowerState, state.abb)])
+selected_loans$stateFullName <- tolower(
+                                        state.name[
+                                          match(selected_loans$BorrowerState, 
+                                                state.abb)])
 #cria um agrupamento por estado e situação do mutuário
 selected_loans.fc_by_state <- selected_loans %>%
   group_by(stateFullName, inadimplente) %>%
   summarise(n = n()) 
   
+##################################################################################
+# Esse bloco cria dois mapas, um para bons e outro para mal pagadores, foi       #
+# utilizado azul para indicar os bons pagadores e vermelho para os inadimplentes.#
+##################################################################################
 
-
+#mapa de inadimplentes
 ggplot() + 
 geom_map(data = map, map = map,
               aes(x = long, y = lat, map_id = region)) +
-geom_map(data =  subset(selected_loans.fc_by_state, selected_loans.fc_by_state$inadimplente == TRUE), 
+geom_map(data =  subset(selected_loans.fc_by_state,
+                        selected_loans.fc_by_state$inadimplente == TRUE), 
               aes(fill = n, map_id = stateFullName),
               map = map) + 
      expand_limits(x = map$long, y = map$lat) +
@@ -271,11 +302,12 @@ geom_map(data =  subset(selected_loans.fc_by_state, selected_loans.fc_by_state$i
        x="Longitude", 
        title="Mapa de Mutuários Inadimplentes")
 
-
+#mapa de bons pagadores
 ggplot() + 
 geom_map(data = map, map = map,
           aes(x = long, y = lat, map_id = region)) +
-geom_map(data =  subset(selected_loans.fc_by_state, selected_loans.fc_by_state$inadimplente == FALSE), 
+geom_map(data =  subset(selected_loans.fc_by_state, 
+                        selected_loans.fc_by_state$inadimplente == FALSE), 
               aes(fill = n, map_id = stateFullName),
               map = map) + 
      expand_limits(x = map$long, y = map$lat) +
@@ -298,11 +330,12 @@ Aqui podemos visualizar a grande concentração de empréstimos na Califórnia com e
 
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
+#cria um agrupamento por categoria do empréstimo
 selected_loans.fc_by_ListingCategory <- selected_loans %>%
   group_by(ListingCategory) %>%
   summarise(n = n()) 
 
-
+#labels dos empréstimos na ordem que serão exibidos
 categories <- c("Not Available", "Debt Consolidation", "Home Improvement", 
                       "Business", "Personal Loan", "Student Use", "Auto", "Other", 
                       "Baby&Adoption", "Boat", "Cosmetic Procedure", 
@@ -311,13 +344,15 @@ categories <- c("Not Available", "Debt Consolidation", "Home Improvement",
                       "RV", "Taxes", "Vacation", "Wedding Loans")
 
 
-
-ggplot(selected_loans.fc_by_ListingCategory, aes(x = ListingCategory, y = n, label = n)) +
+#Responsável por exibir um gráfico de barras das categorias dos empréstimos
+ggplot(selected_loans.fc_by_ListingCategory, aes(x = ListingCategory, 
+                                                 y = n, label = n)) +
 geom_bar(stat = "identity", fill = "red") +
 scale_x_discrete(limits = categories) +  
 geom_text(size = 3, position = position_stack(vjust = 0.8)) + 
 theme(legend.position = "bottom") + 
-  theme(axis.text.x = element_text(angle = 90, vjust = -2.5), axis.ticks = element_blank()) + 
+  theme(axis.text.x = element_text(angle = 90, vjust = -2.5), 
+        axis.ticks = element_blank()) + 
   labs(title="Motivação para adquirir um empréstimo", 
    x = "Motivo do empréstimo",
    y = "Número de registros")
@@ -330,11 +365,17 @@ A grande maioria dos empréstimos são para consolidação de dívidas. Isso é algo i
 
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
-
-ggplot(aes(x = StatedMonthlyIncome, fill = inadimplente), data = selected_loans) +
+#Responsável por exibiro histogramas da renda mensal de acordo com a situação
+#do mutuário.
+ggplot(aes(x = StatedMonthlyIncome, fill = inadimplente), 
+       data = selected_loans) +
   geom_histogram() +
-  scale_x_continuous(limits = c(0, quantile(selected_loans$StatedMonthlyIncome, 0.99)),
-                     breaks = seq(0, quantile(selected_loans$StatedMonthlyIncome, 0.99), 2500)) +
+  scale_x_continuous(limits = c(0, 
+                                quantile(selected_loans$StatedMonthlyIncome, 
+                                         0.99)),
+                     breaks = seq(0, 
+                                  quantile(selected_loans$StatedMonthlyIncome, 
+                                           0.99), 2500)) +
   scale_fill_discrete(labels = c("Bom Pagador", "Inadimplente")) +
    labs(title="Renda mensal por situação do mutuário", 
      fill = "Situação",
@@ -349,7 +390,8 @@ Como agora sabemos quando um mutuário está inadimplente, me surgiu uma dúvida de
 
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
-
+#Responsável por exibir um gráfico de dispersão entre o valor do empréstimo e o 
+#retorno estimado
 ggplot(aes(x = LoanOriginalAmount, y = EstimatedReturn), 
        data = selected_loans) +
   geom_point(alpha = 1/20, size = 1, position = 'jitter') +
@@ -358,7 +400,7 @@ ggplot(aes(x = LoanOriginalAmount, y = EstimatedReturn),
    labs(title="Valor do empréstimo por retorno estimado",
         x = "Valor do Empréstimo",
         y = "Retorno Estimado")
-
+#verifica a correlçao entre o valor do empréstimo e o retorno estimado
 with(selected_loans, cor.test(LoanOriginalAmount, EstimatedReturn))
 
 ```
@@ -369,7 +411,10 @@ Aqui foi uma grande surpresa para mim, encontrei uma correlação negativa de -0.2
 
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
+#define a formula polinomial
 poly.formula <- y ~ poly(x, 2)
+#Responsável por exibir um gráfico de dispersão entre o valor do empréstimo e o
+# número de investidores.
 ggplot(aes(x = LoanOriginalAmount, y = Investors), 
        data = selected_loans) +
   geom_point(alpha = 1/20, size = 1, position = 'jitter') +
@@ -380,6 +425,7 @@ ggplot(aes(x = LoanOriginalAmount, y = Investors),
         x = "Valor do Empréstimo (Log 10)",
         y = "Número de Investidores")
 
+#verifica a correlçao entre o valor do empréstimo e o número de investidores
 with(selected_loans, cor.test(LoanOriginalAmount, Investors))
 ```
 
@@ -388,7 +434,7 @@ Aqui foi outra surpresa, esperava um crescimento linear entre investidores e val
 
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
-
+#Responsável por exibir um boxplot das situações dos empréstimos.
 ggplot(aes(x = LoanStatus, y = LoanOriginalAmount), 
        data = selected_loans) +
   geom_boxplot(aes(fill = LoanStatus)) + 
@@ -409,11 +455,13 @@ A maioria das categorias possuem o 1º quartil igual, com algumas exceções. Outra
 
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
-
+#define a ordem que os scores serão exibidos
 scores <-c("AA", "A", "B", "C", "D", "E", "HR")
 
-box_vc <- ggplot(aes(x = ProsperRating, y = BorrowerRate, label = ProsperRating), 
-       data = selected_loans) +
+#Responsável por exibir um BoxPlot dos scores de risco por taxa de júros
+# dos empréstimos.
+box_vc <- ggplot(aes(x = ProsperRating, y = BorrowerRate, 
+                     label = ProsperRating), data = selected_loans) +
   geom_boxplot() + 
   scale_y_continuous(labels = scales::percent) +
   scale_x_discrete(limits = scores) + 
@@ -432,9 +480,10 @@ vc_ylim2 = boxplot.stats(selected_loans$BorrowerRate)$stats[c(1, 5)]
 # define os limites do y baseado no vc_ylim2
 c1 = box_vc + coord_cartesian(ylim = vc_ylim2) 
 
-
+#exibe o boxplot
 c1
 
+#sumário dos 
 with(selected_loans, by(BorrowerRate, ProsperRating, summary))
 ```
 
@@ -443,14 +492,32 @@ Na visualização acima podemos perceber um crescimento linear, isso já era algo e
 
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
+#cria um agrupamento dos mutuários inadimplentes
+inadimplentes_by_BCUtilization <- group_by(
+                                          subset(selected_loans,
+                                          selected_loans$inadimplente == TRUE),
+                                          ProsperRating)
+#obtém o valor médio da utilização do crédito rotativo dos inadimplentes
+inadimplentes_mp_by_BCUtilization <- summarise(
+                                              inadimplentes_by_BCUtilization,
+                                              mean_price = mean(BankcardUtilization))
+#cria um agrupamento dos mutuários bons pagadores
+loans_bons_by_BCUtilization <- group_by(
+                                        subset(
+                                            selected_loans, 
+                                            selected_loans$inadimplente == FALSE),
+                                            ProsperRating)
+#obtém o valor médio da utilização do crédito rotativo dos bons pagadores
+bons_mp_by_BCUtilization <- summarise(loans_bons_by_BCUtilization, 
+                                      mean_price = mean(BankcardUtilization))
 
-loans_inadimplentes_by_BankcardUtilization <- group_by(subset(selected_loans, selected_loans$inadimplente == TRUE), ProsperRating)
-loans_inadimplentes_mp_by_BankcardUtilization <- summarise(loans_inadimplentes_by_BankcardUtilization, mean_price = mean(BankcardUtilization))
-
-loans_bons_by_BankcardUtilization <- group_by(subset(selected_loans, selected_loans$inadimplente == FALSE), ProsperRating)
-loans_bons_mp_by_BankcardUtilization <- summarise(loans_bons_by_BankcardUtilization, mean_price = mean(BankcardUtilization))
-
-p1 <- ggplot(aes(x = ProsperRating, y = mean_price),data = loans_inadimplentes_mp_by_BankcardUtilization) +
+##################################################################################
+#Bloco responsável por gerar os gráficos de barras dos mutuários inadimplentes   #
+# e dos bons pagadores, onde o eixo X é o score de risco e o y é o uso do crédito#
+# rotativo do cartão de crédito                                                  #
+##################################################################################
+p1 <- ggplot(aes(x = ProsperRating, y = mean_price),
+             data = inadimplentes_mp_by_BCUtilization) +
         geom_bar(stat = "identity", fill = "#FF7F50") +
         scale_x_discrete(limits = scores) + 
         scale_y_continuous(labels = scales::percent) +
@@ -460,7 +527,8 @@ p1 <- ggplot(aes(x = ProsperRating, y = mean_price),data = loans_inadimplentes_m
              y = "Uso cartão de crédito",
              x = "Score de Risco")
 
-p2 <- ggplot(aes(x = ProsperRating, y = mean_price),data = loans_bons_mp_by_BankcardUtilization) +
+p2 <- ggplot(aes(x = ProsperRating, y = mean_price),
+             data = bons_mp_by_BCUtilization) +
         geom_bar(stat="identity", fill = "#00CDCD") +
         scale_x_discrete(limits = scores) +
         scale_y_continuous(labels = scales::percent) +
@@ -469,7 +537,7 @@ p2 <- ggplot(aes(x = ProsperRating, y = mean_price),data = loans_bons_mp_by_Bank
         labs(title = "Média de uso do cartão de crédito de mutuários bons pagadores", 
              y = "Uso cartão de crédito",
              x = "Score de Risco")
-
+#Responsável por exibir os gráficos gerados em uma grid
 grid.arrange(p1, p2, ncol = 1)
 
 ```
@@ -482,13 +550,18 @@ Na visualização acima examinei a média de uso do cartão de crédito por score de 
 
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
-ggplot(aes(x = LoanCurrentDaysDelinquent, y = BankcardUtilization, color = EmploymentStatus), 
+#Responsável por exibir um gráfico de dispersão, onde o eixo X corresponde aos 
+#dias em atraso, o eixo Y corresponde ao usuo do cartão de crédito e as cores
+# correspondem a situação de emprego do mutuário.
+ggplot(aes(x = LoanCurrentDaysDelinquent, y = BankcardUtilization, 
+           color = EmploymentStatus), 
        data = subset(selected_loans, !is.na(selected_loans$EmploymentStatus))) +
   geom_point(alpha = 1/10, size = 1, position = 'jitter') +
   scale_y_log10(labels = scales::percent) +
   scale_color_brewer(palette = "Set1",
                      guide = guide_legend(title = 'Situação do emprego',
-                                          override.aes = list(alpha = 1, size = 2))) +
+                                          override.aes = list(
+                                                        alpha = 1, size = 2))) +
   labs(title="Utilização do cartão de crédito por dias em atraso",
       x = "Dias em Atraso",
       y = "Uso Cartão Crédito (Log 10)")
@@ -500,6 +573,9 @@ Na visualização acima, eu esperava um crescimento do uso do cartão à medida que 
 
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
+#Responsável por exibir o rendimento do credor de acordo com a situação do
+#mutuário(Inadimplente ou Bom Pagador).
+#A visualização foi facetada pela situação de emprego do mutuário.
 ggplot(aes(x = LenderYield, fill = inadimplente), 
        data = subset(selected_loans, !is.na(selected_loans$EmploymentStatus))) +
   geom_histogram() +
@@ -519,15 +595,19 @@ Decidi investigar o retorno do credor para cada situação de emprego do mutuário 
 
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
+#Define matizes igualmente espaçadas. 
 gg_color_hue <- function(n) {hcl(h=seq(15, 375, length=n+1), l=65, c=100)[1:n]}
-
+#Exibe um gráfico de linhas onde o eixo X corresponde ao ano do pagamento dos
+#empréstimos, o eixo Y ao número de pagamentos em dia e as cores a faixa de
+#renda dos mutuários.
 ggplot(aes(x = YearLoan,  y = OnTimeProsperPayments), 
        data = subset(selected_loans, !is.na(OnTimeProsperPayments))) +
   geom_line(aes(color = IncomeRange),
             stat = 'summary', fun.y = median) +
   scale_color_manual(
     "Faixa de Renda",
-    values=c(gg_color_hue(length(unique(selected_loans$IncomeRange))), "orange", "darkred")
+    values=c(gg_color_hue(length(unique(selected_loans$IncomeRange))),
+             "orange", "darkred")
   ) +
    labs(title="Pagamentos em dia por faixa de renda", 
      y = "Pagamentos em dia",
@@ -543,13 +623,16 @@ Podemos visualizar que mesmo no período da crise financeira de 2008, houve um cr
 ### Primeira Visualização 
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+#Exibe o rendimento do credor em cada estado dos EUA. 
 ggplot(aes(x = YearLoan,  y = LenderYield), 
        data = subset(selected_loans, !is.na(BorrowerState))) +
   geom_line(stat = 'summary', fun.y = median) +
   scale_y_continuous(labels = scales::percent) +
   facet_wrap(~ BorrowerState) +
   theme(legend.position = "bottom") + 
-  theme(axis.text.x = element_text(angle = 90, vjust = 1), axis.ticks = element_blank()) + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 1), 
+        axis.ticks = element_blank()) + 
    labs(title="Rendimentos do credor entre 2006 a 2014 por estado", 
      y = "Rendimentos do credor",
      x = "Ano dos rendimentos") 
@@ -560,11 +643,13 @@ Na análise univariada visualizamos um mapa demonstrando a concentração mutuários
 ### Segunda visualização
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
+#Cria um agrupamento pela categoria do empreéstimo e por situação
 selected_loans.fc_by_Category_inadimplente <- selected_loans %>%
   group_by(ListingCategory, inadimplente) %>%
   summarise(n = n()) 
 
-
+#Responsável por exibir um gráfico de barras das categorias de empréstimo, separado
+#pela situação do mutuário.
 ggplot(selected_loans.fc_by_Category_inadimplente, 
        aes(x = ListingCategory, y = n, 
            label = n, fill = inadimplente)) +
@@ -593,7 +678,9 @@ Aqui o propósito é identificar a situação do mutuário para cada categoria de sol
 ### Terceira visualização
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
-
+#Responsável por exibir um gráfico de dispersão onde o eixo X corresponde ao
+#valor do empréstimo, o Y ao retorno estimado e as cores ao Score de Risco dos
+#mutuários.
 ggplot(aes(x = LoanOriginalAmount, y = EstimatedReturn, color = ProsperRating), 
        data = subset(selected_loans, !is.na(selected_loans$ProsperRating))) +
   geom_point(alpha = 0.5, size = 1, position = 'jitter') +
@@ -601,11 +688,12 @@ ggplot(aes(x = LoanOriginalAmount, y = EstimatedReturn, color = ProsperRating),
   geom_smooth(method = 'lm', color = 'red') +
   scale_color_brewer(type = 'div',
                      guide = guide_legend(title = 'Score de Risco', reverse = T,
-                                          override.aes = list(alpha = 1, size = 2))) +
+                                          override.aes = list(alpha = 1, 
+                                                              size = 2))) +
    labs(title="Retorno Estimado por Montante de Empréstimo",
         x = "Valor do Empréstimo",
         y = "Retorno Estimado")
-
+#Exibe a correlação entre o valor do empréstimo e o retorno estimado.
 with(selected_loans, cor.test(LoanOriginalAmount, EstimatedReturn))
 
 ```

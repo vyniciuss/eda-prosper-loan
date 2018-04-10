@@ -2,6 +2,8 @@
 
 O projeto desta análise faz parte do curso Data Science para Negócios da Udacity
 
+![alt text](https://github.com/vyniciuss/eda-prosper-loan/blob/master/Prosper.jpg)
+
 ## Visão geral do projeto
 
 O Prosper Marketplace é o primeiro mercado de empréstimos peer-to-peer dos Estados Unidos, com mais de US $ 7 bilhões em empréstimos financiados. Os mutuários solicitam empréstimos pessoais ao Prosper e os investidores (individuais ou institucionais) podem financiar de US $ 2.000 a US $ 35.000 por solicitação de empréstimo. Os investidores podem considerar as pontuações de crédito, as classificações e as histórias dos tomadores e a categoria do empréstimo. A Prosper cuida do serviço do empréstimo e cobra e distribui os pagamentos dos mutuários e os juros aos investidores.

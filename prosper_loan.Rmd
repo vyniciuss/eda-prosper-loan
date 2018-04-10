@@ -2,7 +2,8 @@
 title: "Análise Exploratória - Prosper Marketplace"
 author: "Vinicius Ferreira Santos"
 date: "27 de março de 2018"
-output: html_document
+output:
+  html_document: default
 ---
 
 Prosper Marketplace
